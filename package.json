@@ -3,9 +3,7 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "vite build && cp -r public/* dist/ && cp -r api app bootstrap config database routes storage vendor artisan composer.json dist/",
-        "vite:build": "vite build",
-        "deploy": "vite build",
+        "build": "vite build && cp -R api app bootstrap config database routes storage artisan composer.json public dist/",
         "dev": "npx concurrently -c \"#93c5fd,#c4b5fd\" \"php artisan serve\" \"vite\" --names=server,vite --kill-others",
         "dev:frontend": "vite",
         "serve": "npm run dev",

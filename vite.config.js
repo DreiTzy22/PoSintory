@@ -13,7 +13,7 @@ export default defineConfig({
         tailwindcss(),
     ],
     build: {
-        outDir: 'dist',
+        outDir: 'dist/public/build',
         emptyOutDir: true,
         rollupOptions: {
             input: ['resources/css/app.css', 'resources/js/app.jsx'],
