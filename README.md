@@ -7,14 +7,18 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
-## Vercel Deployment
+## Railway Deployment
 
-To deploy this project to Vercel, follow these steps:
+To deploy this project to Railway:
 
-1.  **Framework Preset**: In Vercel Project Settings, set the **Framework Preset** to **Other**.
-2.  **Environment Variables**: Add all variables from `.env.vercel` to your Vercel Project Settings.
-3.  **Build Command**: The build command is automatically handled by `vercel.json` (`npm run build`).
-4.  **Output Directory**: The output directory is automatically handled by `vercel.json` (`.`).
+1.  **Create a New Project**: In Railway, select "Deploy from GitHub repo".
+2.  **Select Repository**: Choose your PoSintory repository.
+3.  **Environment Variables**: Add your `.env` variables in the Railway dashboard. Ensure you have:
+    - `APP_KEY` (Generate one locally using `php artisan key:generate --show`)
+    - `DB_CONNECTION=pgsql`
+    - `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` (Railway provides these if you add a PostgreSQL plugin)
+4.  **Database**: Add a PostgreSQL plugin to your Railway project.
+5.  **Automatic Build**: Railway will detect the `Dockerfile` and build/deploy automatically.
 
 ## About Laravel
 
