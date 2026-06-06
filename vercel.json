@@ -1,18 +1,18 @@
 {
     "version": 2,
-    "public": true,
-    "framework": null,
-    "buildCommand": "npm run build",
-    "outputDirectory": ".",
-    "rewrites": [
-        {
-            "source": "/(.*)",
-            "destination": "/api/index.php"
-        }
-    ],
     "functions": {
         "api/index.php": {
             "runtime": "vercel-php@0.7.2"
         }
-    }
+    },
+    "rewrites": [
+        {
+            "source": "/build/(.*)",
+            "destination": "/public/build/$1"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/api/index.php"
+        }
+    ]
 }
