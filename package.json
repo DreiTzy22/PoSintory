@@ -3,8 +3,7 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "vite build",
-        "assets:build": "vite build",
+        "build": "vite build && mkdir -p dist",
         "dev": "npx concurrently -c \"#93c5fd,#c4b5fd\" \"php artisan serve\" \"vite\" --names=server,vite --kill-others",
         "dev:frontend": "vite",
         "serve": "npm run dev",

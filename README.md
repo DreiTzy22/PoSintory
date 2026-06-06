@@ -7,6 +7,15 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
+## Vercel Deployment
+
+To deploy this project to Vercel, follow these steps:
+
+1.  **Framework Preset**: In Vercel Project Settings, set the **Framework Preset** to **Other**.
+2.  **Environment Variables**: Add all variables from `.env.vercel` to your Vercel Project Settings.
+3.  **Build Command**: The build command is automatically handled by `vercel.json` (`npm run build`).
+4.  **Output Directory**: The output directory is automatically handled by `vercel.json` (`.`).
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
