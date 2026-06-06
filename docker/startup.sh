@@ -6,6 +6,13 @@ export PORT=${PORT:-80}
 # Replace the port placeholder in Nginx config
 sed -i "s/PORT_PLACEHOLDER/${PORT}/g" /etc/nginx/nginx.conf
 
+# Ensure the database file exists if using SQLite to prevent boot crash
+if [ "$DB_CONNECTION" = "sqlite" ] || [ -z "$DB_CONNECTION" ]; then
+    echo "Ensuring SQLite database exists..."
+    mkdir -p database
+    touch database/database.sqlite
+fi
+
 # 1. Run migrations first so database tables exist
 echo "Running migrations..."
 php artisan migrate --force || echo "Migrations failed, continuing..."

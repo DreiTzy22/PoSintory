@@ -1,5 +1,5 @@
 # Stage 1: Build assets
-FROM node:20-alpine as asset-builder
+FROM node:20-alpine AS asset-builder
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
