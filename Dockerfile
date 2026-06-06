@@ -41,7 +41,8 @@ COPY --from=asset-builder /app/public/build ./public/build
 RUN composer install --no-dev --optimize-autoloader
 
 # Set permissions
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+RUN mkdir -p /var/run /var/log/nginx /var/log/supervisor /var/lib/nginx/tmp \
+    && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/run /var/log/nginx /var/log/supervisor /var/lib/nginx/tmp
 
 # Copy configuration files
 COPY docker/nginx.conf /etc/nginx/nginx.conf
