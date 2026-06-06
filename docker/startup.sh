@@ -29,9 +29,6 @@ mkdir -p storage/framework/cache/data storage/framework/sessions storage/framewo
 chmod -R 775 storage bootstrap/cache
 chown -R www-data:www-data storage bootstrap/cache
 
-# Remove any existing php-fpm socket to prevent "address already in use"
-rm -f /var/run/php-fpm.sock
-
 # Start Supervisor
 echo "Starting Supervisor on port ${PORT}..."
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
