@@ -1,10 +1,12 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Turnstile } from "@marsidev/react-turnstile";
 import { cn } from "../lib/utils";
 import { api, ensureCsrfCookie } from "../lib/api";
+import { toast, alertError } from "../lib/swal";
 
 export default function Login() {
+    const navigate = useNavigate();
     const [token, setToken] = useState(null);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -19,7 +21,11 @@ export default function Login() {
         setError("");
 
         if (!token) {
-            alert("Please complete the human verification.");
+            toast.fire({
+                icon: 'warning',
+                title: 'Verification required',
+                text: 'Please complete the human verification.'
+            });
             return;
         }
 
@@ -32,11 +38,17 @@ export default function Login() {
             localStorage.setItem("auth_token", authToken);
             localStorage.setItem("user_role", user.role);
             
+            toast.fire({
+                icon: 'success',
+                title: 'Login successful!',
+                timer: 1500
+            });
+
             // Explicitly handle redirection based on role
             if (user.role === 'super_admin') {
-                window.location.href = "/admin/tenants"; // System Admins go to management
+                navigate("/admin/tenants");
             } else {
-                window.location.href = "/dashboard"; // Tenants go to their dashboard
+                navigate("/dashboard");
             }
         } catch (err) {
             setError(

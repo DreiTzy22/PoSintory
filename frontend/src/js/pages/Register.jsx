@@ -25,7 +25,11 @@ export default function Register() {
         setError("");
 
         if (!token) {
-            alert("Please complete the human verification.");
+            toast.fire({
+                icon: 'warning',
+                title: 'Verification required',
+                text: 'Please complete the human verification.'
+            });
             return;
         }
 
@@ -49,7 +53,7 @@ export default function Register() {
                 text: 'Welcome to PoSintory.'
             });
 
-            window.location.href = "/dashboard";
+            navigate("/dashboard");
         } catch (err) {
             const message = err.response?.data?.message || "Registration failed. Please check your details and try again.";
             setError(message);
