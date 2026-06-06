@@ -18,4 +18,4 @@ php artisan view:cache
 
 # Start Supervisor
 echo "Starting Supervisor on port ${PORT}..."
-/usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf

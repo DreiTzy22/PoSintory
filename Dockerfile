@@ -26,7 +26,8 @@ RUN apk add --no-cache \
 
 # Install PHP extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) gd pdo_pgsql mbstring zip exif pcntl
+    && docker-php-ext-install -j$(nproc) gd pdo_pgsql mbstring zip exif pcntl \
+    && rm -rf /var/cache/apk/*
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
