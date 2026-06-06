@@ -1,7 +1,8 @@
 {
     "version": 2,
     "public": true,
-    "framework": ".",
+    "framework": null,
+    "buildCommand": "npm run build:vercel",
     "outputDirectory": ".",
     "rewrites": [
         {
