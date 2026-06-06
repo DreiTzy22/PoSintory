@@ -49,6 +49,7 @@ RUN mkdir -p /var/run /var/log/nginx /var/log/supervisor /var/lib/nginx/tmp \
 COPY docker/nginx.conf /etc/nginx/nginx.conf
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY docker/startup.sh /usr/local/bin/startup.sh
+COPY docker/www.conf /usr/local/etc/php-fpm.d/www.conf
 
 RUN chmod +x /usr/local/bin/startup.sh
 

@@ -16,6 +16,11 @@ php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
+# Ensure storage directories exist and are writable
+mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views
+chmod -R 775 storage bootstrap/cache
+chown -R www-data:www-data storage bootstrap/cache
+
 # Start Supervisor
 echo "Starting Supervisor on port ${PORT}..."
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
