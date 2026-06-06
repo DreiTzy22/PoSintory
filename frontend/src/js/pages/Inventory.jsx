@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../lib/api';
+import { toast, alertError } from '../lib/swal';
 import { Package, AlertTriangle, ArrowRightLeft, History, Search } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -9,6 +10,10 @@ export default function Inventory() {
     const [error, setError] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const [filterLowStock, setFilterLowStock] = useState(false);
+    const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+    const [isStockTakeModalOpen, setIsStockTakeModalOpen] = useState(false);
+    const [selectedProduct, setSelectedProduct] = useState(null);
+    const [adjustment, setAdjustment] = useState({ quantity: 0, reason: 'Correction' });
 
     useEffect(() => {
         loadInventory();
@@ -27,16 +32,37 @@ export default function Inventory() {
         }
     };
 
+    const handleAdjustment = async (e) => {
+        e.preventDefault();
+        if (!selectedProduct) return;
+        
+        try {
+            const newStock = selectedProduct.stock + parseInt(adjustment.quantity);
+            await api.put(`/products/${selectedProduct.id}`, {
+                ...selectedProduct,
+                stock: newStock
+            });
+            setIsStockTakeModalOpen(false);
+            setIsTransferModalOpen(false);
+            setSelectedProduct(null);
+            setAdjustment({ quantity: 0, reason: 'Correction' });
+            loadInventory();
+            toast.fire({ icon: 'success', title: 'Inventory updated!' });
+        } catch (e) {
+            alertError('Update Failed', 'Failed to update inventory. Please try again.');
+        }
+    };
+
     const stats = {
         totalSKUs: items.length,
-        lowStock: items.filter(i => i.stock > 0 && i.stock <= 5).length,
+        lowStock: items.filter(i => i.stock > 0 && i.stock <= 6).length,
         outOfStock: items.filter(i => i.stock <= 0).length
     };
 
     const filteredItems = items.filter(item => {
         const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                              (item.sku && item.sku.toLowerCase().includes(searchQuery.toLowerCase()));
-        const matchesFilter = filterLowStock ? item.stock <= 5 : true;
+        const matchesFilter = filterLowStock ? item.stock <= 6 : true;
         return matchesSearch && matchesFilter;
     });
 
@@ -50,11 +76,17 @@ export default function Inventory() {
                     </p>
                 </div>
                 <div className="flex gap-2">
-                    <button className="inline-flex items-center gap-2 rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2 text-xs font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
+                    <button 
+                        onClick={() => setIsTransferModalOpen(true)}
+                        className="inline-flex items-center gap-2 rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2 text-xs font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+                    >
                         <ArrowRightLeft className="w-3.5 h-3.5" />
                         Transfer
                     </button>
-                    <button className="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-indigo-700 transition-colors">
+                    <button 
+                        onClick={() => setIsStockTakeModalOpen(true)}
+                        className="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-indigo-700 transition-colors"
+                    >
                         <History className="w-3.5 h-3.5" />
                         Stock take
                     </button>
@@ -151,11 +183,11 @@ export default function Inventory() {
                                                     "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider",
                                                     item.stock <= 0 
                                                         ? "bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400" 
-                                                        : item.stock <= 5 
+                                                        : item.stock <= 6 
                                                             ? "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400" 
                                                             : "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400"
                                                 )}>
-                                                    {item.stock <= 0 ? 'Out of Stock' : item.stock <= 5 ? 'Low Stock' : 'In Stock'}
+                                                    {item.stock <= 0 ? 'Out of Stock' : item.stock <= 6 ? 'Low Stock' : 'In Stock'}
                                                 </span>
                                             </td>
                                         </tr>
@@ -166,7 +198,86 @@ export default function Inventory() {
                     </div>
                 </div>
             </div>
+
+            {/* Transfer / Adjustment Modal */}
+            {(isTransferModalOpen || isStockTakeModalOpen) && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-zinc-200 dark:border-zinc-800 w-full max-w-md overflow-hidden flex flex-col">
+                        <header className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+                            <h3 className="text-lg font-semibold">{isTransferModalOpen ? 'Stock Transfer' : 'Stock Take / Adjustment'}</h3>
+                            <button onClick={() => { setIsTransferModalOpen(false); setIsStockTakeModalOpen(false); setSelectedProduct(null); }} className="text-zinc-500 hover:text-zinc-700">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </header>
+                        <form onSubmit={handleAdjustment} className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-xs font-medium text-zinc-500 uppercase tracking-wider mb-1">Select Product</label>
+                                <select 
+                                    required
+                                    className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+                                    value={selectedProduct?.id || ''}
+                                    onChange={(e) => setSelectedProduct(items.find(i => i.id === parseInt(e.target.value)))}
+                                >
+                                    <option value="">Select a product...</option>
+                                    {items.map(i => (
+                                        <option key={i.id} value={i.id}>{i.name} ({i.stock} on hand)</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-medium text-zinc-500 uppercase tracking-wider mb-1">
+                                    {isTransferModalOpen ? 'Quantity to Transfer' : 'Quantity Adjustment (+/-)'}
+                                </label>
+                                <input
+                                    required
+                                    type="number"
+                                    className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+                                    value={adjustment.quantity}
+                                    onChange={(e) => setAdjustment({...adjustment, quantity: e.target.value})}
+                                    placeholder="e.g. 10 or -5"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-medium text-zinc-500 uppercase tracking-wider mb-1">Reason / Notes</label>
+                                <textarea
+                                    className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+                                    rows="3"
+                                    value={adjustment.reason}
+                                    onChange={(e) => setAdjustment({...adjustment, reason: e.target.value})}
+                                    placeholder="Reason for adjustment..."
+                                />
+                            </div>
+                            <button 
+                                type="submit"
+                                className="w-full py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20"
+                            >
+                                Confirm Adjustment
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
+}
+
+function X(props) {
+    return (
+        <svg
+            {...props}
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <path d="M18 6 6 18" />
+            <path d="m6 6 12 12" />
+        </svg>
+    )
 }
 

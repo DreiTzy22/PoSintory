@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../lib/api';
+import { toast, alertError, confirmAction } from '../lib/swal';
 import { Plus, Search, Edit2, Trash2, X, Factory, AlertCircle, Phone, Mail, MapPin, User } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -72,20 +73,24 @@ export default function Suppliers() {
             }
             setIsModalOpen(false);
             loadSuppliers();
+            toast.fire({ icon: 'success', title: editingSupplier ? 'Supplier updated!' : 'Supplier created!' });
         } catch (e) {
-            alert('Failed to save supplier. Please check your inputs.');
+            alertError('Error', 'Failed to save supplier. Please check your inputs.');
         } finally {
             setIsSubmitting(false);
         }
     };
 
     const handleDelete = async (id) => {
-        if (!confirm('Are you sure you want to delete this supplier?')) return;
+        const result = await confirmAction('Delete Supplier', 'Are you sure you want to delete this supplier?');
+        if (!result.isConfirmed) return;
+        
         try {
             await api.delete(`/suppliers/${id}`);
             loadSuppliers();
+            toast.fire({ icon: 'success', title: 'Supplier deleted!' });
         } catch (e) {
-            alert('Failed to delete supplier.');
+            alertError('Error', 'Failed to delete supplier.');
         }
     };
 

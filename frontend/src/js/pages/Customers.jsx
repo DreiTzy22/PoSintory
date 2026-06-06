@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../lib/api';
+import { toast, alertError, confirmAction } from '../lib/swal';
 import { Plus, Search, Edit2, Trash2, X, Users, AlertCircle, Phone, Mail, MapPin } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -72,20 +73,24 @@ export default function Customers() {
             }
             setIsModalOpen(false);
             loadCustomers();
+            toast.fire({ icon: 'success', title: editingCustomer ? 'Customer updated!' : 'Customer created!' });
         } catch (e) {
-            alert('Failed to save customer. Please check your inputs.');
+            alertError('Error', 'Failed to save customer. Please check your inputs.');
         } finally {
             setIsSubmitting(false);
         }
     };
 
     const handleDelete = async (id) => {
-        if (!confirm('Are you sure you want to delete this customer?')) return;
+        const result = await confirmAction('Delete Customer', 'Are you sure you want to delete this customer?');
+        if (!result.isConfirmed) return;
+        
         try {
             await api.delete(`/customers/${id}`);
             loadCustomers();
+            toast.fire({ icon: 'success', title: 'Customer deleted!' });
         } catch (e) {
-            alert('Failed to delete customer.');
+            alertError('Error', 'Failed to delete customer.');
         }
     };
 

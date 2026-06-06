@@ -22,4 +22,9 @@ class Product extends Model
         'image',
         'tenant_id',
     ];
+
+    public function saleItems()
+    {
+        return $this->hasMany(SaleItem::class);
+    }
 }

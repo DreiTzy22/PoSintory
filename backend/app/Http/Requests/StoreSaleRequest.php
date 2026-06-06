@@ -23,6 +23,7 @@ class StoreSaleRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'customer_id' => ['nullable', 'exists:customers,id'],
             'total_amount' => ['required', 'numeric', 'min:0'],
             'payment_method' => ['required', 'string', 'max:50'],
             'status' => ['nullable', 'string', 'max:50'],
@@ -30,7 +31,7 @@ class StoreSaleRequest extends FormRequest
             'items.*.product_id' => ['required', 'exists:products,id'],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
             'items.*.unit_price' => ['required', 'numeric', 'min:0'],
-            'items.*.total_price' => ['required', 'numeric', 'min:0'],
+            'items.*.subtotal' => ['required', 'numeric', 'min:0'],
         ];
     }
 }

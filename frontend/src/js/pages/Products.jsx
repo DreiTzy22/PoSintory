@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../lib/api';
+import { toast, alertError, confirmAction } from '../lib/swal';
 import { Plus, Search, Edit2, Trash2, X, Package, AlertCircle } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -78,20 +79,24 @@ export default function Products() {
             }
             setIsModalOpen(false);
             loadProducts();
+            toast.fire({ icon: 'success', title: editingProduct ? 'Product updated!' : 'Product created!' });
         } catch (e) {
-            alert('Failed to save product. Please check your inputs.');
+            alertError('Error', 'Failed to save product. Please check your inputs.');
         } finally {
             setIsSubmitting(false);
         }
     };
 
     const handleDelete = async (id) => {
-        if (!confirm('Are you sure you want to delete this product?')) return;
+        const result = await confirmAction('Delete Product', 'Are you sure you want to delete this product?');
+        if (!result.isConfirmed) return;
+        
         try {
             await api.delete(`/products/${id}`);
             loadProducts();
+            toast.fire({ icon: 'success', title: 'Product deleted!' });
         } catch (e) {
-            alert('Failed to delete product.');
+            alertError('Error', 'Failed to delete product.');
         }
     };
 

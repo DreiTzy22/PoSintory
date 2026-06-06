@@ -20,13 +20,8 @@ class ProductController extends Controller
             $search = $request->get('search');
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('sku', 'like', "%{$search}%")
-                    ->orWhere('barcode', 'like', "%{$search}%");
+                    ->orWhere('sku', 'like', "%{$search}%");
             });
-        }
-
-        if ($request->has('status')) {
-            $query->where('status', $request->get('status'));
         }
 
         return $query->latest('id')->paginate($request->get('per_page', 25));

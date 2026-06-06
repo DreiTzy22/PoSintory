@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 import { BarChart3, TrendingUp, Package, Wallet, Calendar } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 export default function Reports() {
+    const navigate = useNavigate();
     const [stats, setStats] = useState({
         today_sales: 0,
         total_products: 0,
+        inventory_value: 0,
         low_stock_count: 0,
         top_product: 'None'
     });
@@ -29,10 +32,10 @@ export default function Reports() {
     };
 
     const reportCards = [
-        { title: 'Sales summary', desc: 'Overview of revenue and transactions.', icon: TrendingUp, color: 'text-emerald-500', value: `₱${parseFloat(stats.today_sales).toFixed(2)}` },
-        { title: 'Product performance', desc: 'Best selling items in your catalog.', icon: Package, color: 'text-indigo-500', value: stats.top_product },
-        { title: 'Inventory valuation', desc: 'Items currently in stock.', icon: Wallet, color: 'text-amber-500', value: stats.total_products },
-        { title: 'Stock alerts', desc: 'Items that need replenishment.', icon: Calendar, color: 'text-rose-500', value: stats.low_stock_count },
+        { title: 'Sales summary', desc: 'Overview of revenue and transactions.', icon: TrendingUp, color: 'text-emerald-500', value: `₱${parseFloat(stats.today_sales).toFixed(2)}`, link: '/sales' },
+        { title: 'Product performance', desc: 'Best selling items in your catalog.', icon: Package, color: 'text-indigo-500', value: stats.top_product, link: '/products' },
+        { title: 'Inventory valuation', desc: 'Total value of items currently in stock.', icon: Wallet, color: 'text-amber-500', value: `₱${parseFloat(stats.inventory_value).toFixed(2)}`, link: '/inventory' },
+        { title: 'Stock alerts', desc: 'Items that need replenishment.', icon: Calendar, color: 'text-rose-500', value: stats.low_stock_count, link: '/inventory' },
     ];
 
     return (
@@ -60,7 +63,10 @@ export default function Reports() {
                             <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{r.desc}</p>
                         </div>
                         <div className="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
-                            <button className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
+                            <button 
+                                onClick={() => navigate(r.link)}
+                                className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
+                            >
                                 View Details →
                             </button>
                         </div>

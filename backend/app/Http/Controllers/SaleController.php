@@ -14,7 +14,7 @@ class SaleController extends Controller
     public function index()
     {
         return Sale::query()
-            ->with('items.product')
+            ->with(['items.product', 'customer'])
             ->latest('id')
             ->paginate(25);
     }
@@ -32,7 +32,7 @@ class SaleController extends Controller
      */
     public function store(StoreSaleRequest $request)
     {
-        return \DB::transaction(function () use ($request) {
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($request) {
             $validated = $request->validated();
             $items = $validated['items'];
             unset($validated['items']);

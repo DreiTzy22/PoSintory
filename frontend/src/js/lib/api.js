@@ -1,7 +1,9 @@
 import axios from "axios";
 
+const baseURL = import.meta.env.VITE_API_URL || "/api";
+
 export const api = axios.create({
-    baseURL: "/api",
+    baseURL: baseURL,
     withCredentials: true,
     headers: {
         "X-Requested-With": "XMLHttpRequest",
@@ -19,7 +21,8 @@ api.interceptors.request.use((config) => {
 });
 
 export async function ensureCsrfCookie() {
-    await axios.get("/sanctum/csrf-cookie", {
+    const sanctumURL = import.meta.env.VITE_SANCTUM_URL || "";
+    await axios.get(`${sanctumURL}/sanctum/csrf-cookie`, {
         withCredentials: true,
     });
 }

@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\SaleItemController;
@@ -57,20 +58,21 @@ Route::middleware(['auth:sanctum', 'tenant.status'])->group(function () {
                 'total_tenants' => \App\Models\Tenant::count(),
                 'total_users' => \App\Models\User::count(),
                 'open_tickets' => \App\Models\Ticket::withoutGlobalScopes()->where('status', 'open')->count(),
-                'total_sales' => \App\Models\Sale::withoutGlobalScopes()->sum('total_amount'),
+                'total_sales' => (float) \App\Models\Sale::withoutGlobalScopes()->sum('total_amount'),
             ];
         }
 
-        $querySales = \App\Models\Sale::query();
-        $queryProducts = \App\Models\Product::query();
         $today = now()->startOfDay();
 
         return [
-            'today_sales' => $querySales->where('created_at', '>=', $today)->sum('total_amount'),
-            'low_stock_count' => $queryProducts->where('stock', '<=', 5)->count(),
-            'total_products' => $queryProducts->count(),
-            'top_product' => $queryProducts->withCount('saleItems')
-                ->orderBy('sale_items_count', 'desc')
+            'today_sales' => (float) \App\Models\Sale::where('created_at', '>=', $today)->sum('total_amount'),
+            'low_stock_count' => \App\Models\Product::whereRaw('stock <= 6')->count(),
+            'total_products' => \App\Models\Product::count(),
+            'inventory_value' => (float) \App\Models\Product::selectRaw('SUM(stock * price) as total')->value('total'),
+            'top_product' => \App\Models\Product::withCount(['saleItems as total_qty' => function ($query) {
+                    $query->select(DB::raw('sum(quantity)'));
+                }])
+                ->orderBy('total_qty', 'desc')
                 ->first()?->name ?? 'None'
         ];
     });
