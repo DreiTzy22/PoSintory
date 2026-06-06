@@ -32,13 +32,29 @@ class SaleController extends Controller
      */
     public function store(StoreSaleRequest $request)
     {
-        $sale = Sale::create([
-            ...$request->validated(),
-            'user_id' => $request->user()->id,
-            'status' => $request->validated()['status'] ?? 'completed',
-        ]);
+        return \DB::transaction(function () use ($request) {
+            $validated = $request->validated();
+            $items = $validated['items'];
+            unset($validated['items']);
 
-        return response()->json($sale->load('items.product'), 201);
+            $sale = Sale::create([
+                ...$validated,
+                'user_id' => $request->user()->id,
+                'status' => $validated['status'] ?? 'completed',
+            ]);
+
+            foreach ($items as $item) {
+                $sale->items()->create($item);
+
+                // Update product stock
+                $product = \App\Models\Product::find($item['product_id']);
+                if ($product) {
+                    $product->decrement('stock', $item['quantity']);
+                }
+            }
+
+            return response()->json($sale->load('items.product'), 201);
+        });
     }
 
     /**

@@ -5,10 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+use App\Traits\BelongsToTenant;
+
 class SaleItem extends Model
 {
     /** @use HasFactory<\Database\Factories\SaleItemFactory> */
-    use HasFactory;
+    use HasFactory, BelongsToTenant;
 
     protected $fillable = [
         'sale_id',
@@ -16,6 +18,7 @@ class SaleItem extends Model
         'quantity',
         'unit_price',
         'subtotal',
+        'tenant_id',
     ];
 
     public function product()

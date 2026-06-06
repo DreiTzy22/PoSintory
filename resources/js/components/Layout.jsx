@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { api } from '../lib/api';
 import { 
     LayoutDashboard, 
     ShoppingCart, 
@@ -15,7 +16,8 @@ import {
     LogOut,
     Sun,
     Moon,
-    Menu
+    Menu,
+    Building2
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -23,13 +25,29 @@ export default function Layout({ children }) {
     const location = useLocation();
     const [isDark, setIsDark] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [user, setUser] = useState(null);
+    const [storedRole, setStoredRole] = useState(localStorage.getItem('user_role'));
 
     useEffect(() => {
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
             setIsDark(true);
             document.documentElement.classList.add('dark');
         }
+        loadUser();
     }, []);
+
+    const loadUser = async () => {
+        try {
+            const res = await api.get('/user');
+            setUser(res.data);
+            if (res.data.role) {
+                localStorage.setItem('user_role', res.data.role);
+                setStoredRole(res.data.role);
+            }
+        } catch (e) {
+            console.error('Failed to load user');
+        }
+    };
 
     const toggleDark = () => {
         setIsDark(!isDark);
@@ -40,11 +58,17 @@ export default function Layout({ children }) {
         }
     };
 
-    const displayName = 'Admin User';
-    const displayRole = 'Administrator';
+    const currentRole = user?.role || storedRole;
+    const displayName = user?.name || 'User';
+    const displayRole = !currentRole 
+        ? 'Loading...' 
+        : (currentRole === 'super_admin' ? 'System Administrator' : (user?.tenant?.name || 'Business Owner'));
 
-    const navItems = [
+    const commonItems = [
         { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    ];
+
+    const tenantItems = [
         { name: 'Point of Sale', path: '/pos', icon: ShoppingCart },
         { name: 'Products', path: '/products', icon: Tag },
         { name: 'Inventory', path: '/inventory', icon: Package },
@@ -55,12 +79,41 @@ export default function Layout({ children }) {
         { name: 'Suppliers', path: '/suppliers', icon: Factory },
         { name: 'Users & Roles', path: '/users', icon: Shield },
         { name: 'Settings', path: '/settings', icon: Settings },
+        { name: 'Support', path: '/support', icon: Receipt }, // Reusing icon for now
     ];
 
-    // If it's the login page, don't show the layout shell
-    if (location.pathname === '/login') {
+    const adminItems = [
+        { name: 'Tenants', path: '/admin/tenants', icon: Building2 },
+        { name: 'Support Tickets', path: '/admin/tickets', icon: Receipt },
+        { name: 'System Health', path: '/admin/health', icon: Shield },
+    ];
+
+    const navItems = currentRole === 'super_admin' 
+        ? [...commonItems, ...adminItems] 
+        : (currentRole === 'cashier' 
+            ? [...commonItems, { name: 'Point of Sale', path: '/pos', icon: ShoppingCart }, { name: 'Support', path: '/support', icon: Receipt }]
+            : [...commonItems, ...tenantItems]);
+
+    // If it's the login or register page, don't show the layout shell
+    const noLayoutPaths = ['/', '/login', '/register'];
+    if (noLayoutPaths.includes(location.pathname)) {
         return children;
     }
+
+    const handleLogout = async () => {
+        try {
+            await api.post('/logout');
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user_role');
+            window.location.href = '/login';
+        } catch (e) {
+            console.error('Logout failed', e);
+            // Fallback: clear token and redirect anyway
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user_role');
+            window.location.href = '/login';
+        }
+    };
 
     return (
         <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex transition-colors duration-300">
@@ -70,15 +123,26 @@ export default function Layout({ children }) {
                 !isSidebarOpen && "-translate-x-full lg:translate-x-0 lg:w-20"
             )}>
                 <div className="flex h-16 items-center justify-between px-4 border-b border-zinc-200 dark:border-zinc-800">
-                    <span className={cn("text-xl font-bold text-indigo-600 dark:text-indigo-400", !isSidebarOpen && "lg:hidden")}>POS<span className="text-zinc-900 dark:text-zinc-100">invent</span></span>
+                    <div className={cn("flex items-center gap-2", !isSidebarOpen && "lg:hidden")}>
+                        <div className="bg-indigo-600 p-1.5 rounded-lg">
+                            <Building2 className="w-5 h-5 text-white" />
+                        </div>
+                        <span className="font-bold text-zinc-900 dark:text-zinc-100 truncate max-w-[150px]">
+                            {currentRole === 'super_admin' ? 'System Console' : (user?.tenant?.name || 'POSinvent')}
+                        </span>
+                    </div>
                     {/* Compact logo for collapsed state */}
-                    {!isSidebarOpen && <span className="hidden lg:block text-xl font-bold text-indigo-600 dark:text-indigo-400 mx-auto">P</span>}
+                    {!isSidebarOpen && (
+                        <div className="hidden lg:flex items-center justify-center w-full">
+                            <Building2 className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                        </div>
+                    )}
                 </div>
                 
                 <nav className="p-4 space-y-1 overflow-y-auto h-[calc(100vh-8rem)]">
                     {navItems.map((item) => {
                         const Icon = item.icon;
-                        const isActive = location.pathname === item.path || (location.pathname === '/' && item.path === '/dashboard');
+                        const isActive = location.pathname === item.path;
                         
                         return (
                             <Link
@@ -100,7 +164,10 @@ export default function Layout({ children }) {
                 </nav>
 
                 <div className="absolute bottom-4 left-4 right-4">
-                    <button className="flex w-full items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-rose-600 dark:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors">
+                    <button 
+                        onClick={handleLogout}
+                        className="flex w-full items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-rose-600 dark:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors"
+                    >
                         <LogOut className="w-5 h-5 shrink-0" />
                         <span className={cn(!isSidebarOpen && "lg:hidden")}>Log out</span>
                     </button>
@@ -132,8 +199,8 @@ export default function Layout({ children }) {
                         </button>
                         
                         <div className="flex items-center gap-3 pl-4 border-l border-zinc-200 dark:border-zinc-800">
-                            <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-sm">
-                                AD
+                            <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-sm uppercase">
+                                {displayName.split(' ').map(n => n[0]).join('').substring(0, 2)}
                             </div>
                             <div className="hidden sm:block text-sm">
                                 <p className="font-medium text-zinc-900 dark:text-zinc-100">{displayName}</p>

@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -15,11 +16,28 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
+        // Super Admin (No tenant_id)
         User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+            'name' => 'System Admin',
+            'email' => 'admin@posintory.com',
+            'password' => Hash::make('password'),
+            'role' => 'super_admin',
+            'tenant_id' => null,
+        ]);
+
+        // Default Tenant
+        $tenant = \App\Models\Tenant::create([
+            'name' => 'Demo Store',
+            'plan' => 'pro',
+        ]);
+
+        // Tenant Admin
+        User::factory()->create([
+            'name' => 'Store Manager',
+            'email' => 'manager@demo.com',
+            'password' => Hash::make('password'),
+            'role' => 'tenant_admin',
+            'tenant_id' => $tenant->id,
         ]);
     }
 }

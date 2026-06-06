@@ -27,8 +27,17 @@ export default function Login() {
         try {
             await ensureCsrfCookie();
             const response = await api.post("/login", { email, password });
-            localStorage.setItem("auth_token", response.data.token);
-            window.location.href = "/dashboard";
+            const { token: authToken, user } = response.data;
+            
+            localStorage.setItem("auth_token", authToken);
+            localStorage.setItem("user_role", user.role);
+            
+            // Explicitly handle redirection based on role
+            if (user.role === 'super_admin') {
+                window.location.href = "/admin/tenants"; // System Admins go to management
+            } else {
+                window.location.href = "/dashboard"; // Tenants go to their dashboard
+            }
         } catch (err) {
             setError(
                 "Login failed. Please check your credentials and try again.",
@@ -43,10 +52,10 @@ export default function Login() {
             <div className="w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-8 rounded-2xl shadow-xl">
                 <div className="text-center mb-8">
                     <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-                        Welcome back
+                        Workspace Login
                     </h1>
                     <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-2">
-                        Log in to your POS and Inventory System
+                        Enter your credentials to access your dashboard.
                     </p>
                 </div>
 
@@ -113,14 +122,14 @@ export default function Login() {
 
                     <div className="text-center text-sm">
                         <span className="text-zinc-600 dark:text-zinc-400">
-                            Don't have an account?{" "}
+                            Need an account?{" "}
                         </span>
-                        <Link
-                            to="/register"
+                        <a
+                            href="mailto:owner@posintory.com?subject=PoSintory Inquiry"
                             className="font-medium text-indigo-600 dark:text-indigo-400 hover:underline"
                         >
-                            Sign Up
-                        </Link>
+                            Contact the Owner
+                        </a>
                     </div>
                 </form>
             </div>
