@@ -4,7 +4,7 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "build:vercel": "vite build",
+        "build:vercel": "vite build && mkdir -p dist && cp -r public/* dist/ && cp -r api dist/ && cp -r vendor dist/ && cp -r app dist/ && cp -r config dist/ && cp -r bootstrap dist/ && cp -r routes dist/ && cp -r storage dist/ && cp artisan dist/ && cp composer.json dist/",
         "dev": "npx concurrently -c \"#93c5fd,#c4b5fd\" \"php artisan serve\" \"vite\" --names=server,vite --kill-others",
         "dev:frontend": "vite",
         "serve": "npm run dev",
