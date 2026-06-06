@@ -41,15 +41,16 @@ COPY --from=asset-builder /app/public/build ./public/build
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Set permissions
-RUN mkdir -p /var/run /var/log/nginx /var/log/supervisor /var/lib/nginx/tmp \
-    && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/run /var/log/nginx /var/log/supervisor /var/lib/nginx/tmp
+# Create necessary directories and set permissions
+RUN mkdir -p /var/run /var/log/nginx /var/log/supervisor /var/lib/nginx/tmp /var/www/html/storage /var/www/html/bootstrap/cache \
+    && chown -R www-data:www-data /var/www/html /var/run /var/log/nginx /var/log/supervisor /var/lib/nginx/tmp \
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Copy configuration files
 COPY docker/nginx.conf /etc/nginx/nginx.conf
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY docker/startup.sh /usr/local/bin/startup.sh
 COPY docker/www.conf /usr/local/etc/php-fpm.d/www.conf
+COPY docker/startup.sh /usr/local/bin/startup.sh
 
 RUN chmod +x /usr/local/bin/startup.sh
 
