@@ -1,6 +1,8 @@
 {
     "version": 2,
     "public": true,
+    "framework": ".",
+    "outputDirectory": ".",
     "rewrites": [
         {
             "source": "/(.*)",

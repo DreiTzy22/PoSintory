@@ -1,0 +1,14 @@
+/node_modules
+/vendor
+/storage/*.key
+/.git
+/.github
+/.vscode
+/.idea
+/.env
+/tests
+/phpunit.xml
+/auth.json
+/.editorconfig
+/.gitattributes
+/README.md
