@@ -19,7 +19,7 @@ use App\Http\Controllers\TicketController;
 
 // Public auth routes
 Route::post('/login', [AuthController::class, 'login']);
-// Route::post('/register', [AuthController::class, 'register']); // Disabled for inquiries only
+Route::post('/register', [AuthController::class, 'register']);
 
 Route::get('/user', function (Request $request) {
     return $request->user();
