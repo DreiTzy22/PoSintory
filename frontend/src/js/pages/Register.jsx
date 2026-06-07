@@ -1,13 +1,11 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Turnstile } from "@marsidev/react-turnstile";
 import { cn } from "../lib/utils";
 import { api, ensureCsrfCookie } from "../lib/api";
 import { toast, alertError } from "../lib/swal";
 
 export default function Register() {
     const navigate = useNavigate();
-    const [token, setToken] = useState(null);
     const [formData, setFormData] = useState({
         name: "",
         business_name: "",
@@ -18,20 +16,9 @@ export default function Register() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState("");
 
-    const siteKey = "1x00000000000000000000AA"; // Cloudflare's dummy sitekey for testing
-
     const handleRegister = async (e) => {
         e.preventDefault();
         setError("");
-
-        if (!token) {
-            toast.fire({
-                icon: 'warning',
-                title: 'Verification required',
-                text: 'Please complete the human verification.'
-            });
-            return;
-        }
 
         if (formData.password !== formData.password_confirmation) {
             setError("Passwords do not match.");
@@ -169,14 +156,6 @@ export default function Register() {
                                 required
                             />
                         </div>
-                    </div>
-
-                    <div className="flex justify-center pt-2 scale-90">
-                        <Turnstile
-                            siteKey={siteKey}
-                            onSuccess={(token) => setToken(token)}
-                            options={{ theme: "auto" }}
-                        />
                     </div>
 
                     <button
