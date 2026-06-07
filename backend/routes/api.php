@@ -19,7 +19,7 @@ use App\Http\Controllers\TicketController;
 
 // Public auth routes
 Route::post('/login', [AuthController::class, 'login']);
-Route::post('/register', [AuthController::class, 'register']);
+// Route::post('/register', [AuthController::class, 'register']); // Disabled for inquiries only
 
 Route::middleware(['auth:sanctum', 'tenant.status'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);

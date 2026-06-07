@@ -128,12 +128,12 @@ export default function Login() {
                         <span className="text-zinc-600 dark:text-zinc-400">
                             Need an account?{" "}
                         </span>
-                        <Link
-                            to="/register"
+                        <a
+                            href="mailto:itsmeyui21@gmail.com?subject=PoSintory Inquiry"
                             className="font-medium text-indigo-600 dark:text-indigo-400 hover:underline"
                         >
-                            Register your business
-                        </Link>
+                            Contact the Owner
+                        </a>
                     </div>
                 </form>
             </div>
