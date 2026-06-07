@@ -31,8 +31,10 @@ export default function Login() {
 
         setIsSubmitting(true);
         try {
-            await ensureCsrfCookie();
-            const response = await api.post("/login", { email, password });
+    const response = await api.post("/login", {
+        email,
+        password,
+    });
             const { token: authToken, user } = response.data;
             
             localStorage.setItem("auth_token", authToken);
