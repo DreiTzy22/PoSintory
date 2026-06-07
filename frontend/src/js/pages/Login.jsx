@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { cn } from "../lib/utils";
-import { api, ensureCsrfCookie } from "../lib/api";
+import { api } from "../lib/api";
 import { toast, alertError } from "../lib/swal";
 
 export default function Login() {
@@ -12,38 +12,52 @@ export default function Login() {
     const [error, setError] = useState("");
 
     const handleLogin = async (e) => {
-        e.preventDefault();
-        setError("");
+    e.preventDefault();
+    setError("");
+    setIsSubmitting(true);
 
-        setIsSubmitting(true);
-        try {
-            await ensureCsrfCookie();
-            const response = await api.post("/login", { email, password });
-            const { token: authToken, user } = response.data;
-            
-            localStorage.setItem("auth_token", authToken);
-            localStorage.setItem("user_role", user.role);
-            
-            toast.fire({
-                icon: 'success',
-                title: 'Login successful!',
-                timer: 1500
-            });
+    try {
+        const response = await api.post("/login", {
+            email,
+            password,
+        });
 
-            // Explicitly handle redirection based on role
-            if (user.role === 'super_admin') {
-                navigate("/admin/tenants");
-            } else {
-                navigate("/dashboard");
-            }
-        } catch (err) {
-            setError(
-                "Login failed. Please check your credentials and try again.",
-            );
-        } finally {
-            setIsSubmitting(false);
+        const { token: authToken, user } = response.data;
+
+        localStorage.setItem("auth_token", authToken);
+        localStorage.setItem("user_role", user.role);
+        localStorage.setItem("user", JSON.stringify(user));
+
+        toast.fire({
+            icon: "success",
+            title: "Login successful!",
+            timer: 1500,
+        });
+
+        if (user.role === "super_admin") {
+            navigate("/admin/tenants");
+        } else {
+            navigate("/dashboard");
         }
-    };
+    } catch (err) {
+    console.log("LOGIN ERROR:", err.response?.data);
+
+    if (err.response?.data?.errors) {
+        const firstError = Object.values(
+            err.response.data.errors
+        )[0][0];
+
+        setError(firstError);
+    } else {
+        setError(
+            err.response?.data?.message ||
+            "Login failed. Please check your credentials."
+        );
+    }
+} finally {
+        setIsSubmitting(false);
+    }
+};
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-950 p-6">
