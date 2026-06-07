@@ -34,6 +34,7 @@ export default function Login() {
     const response = await api.post("/login", {
         email,
         password,
+        turnstile_token: token,
     });
             const { token: authToken, user } = response.data;
             
