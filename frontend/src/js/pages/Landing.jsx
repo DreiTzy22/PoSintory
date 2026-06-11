@@ -156,7 +156,7 @@ export default function Landing() {
                     </p>
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                         <a 
-                            href="mailto:owner@posintory.com?subject=PoSintory Inquiry" 
+                            href="mailto:owner@inventra.com?subject=Inventra Inquiry" 
                             className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:scale-105 transition-all shadow-xl shadow-teal-500/30"
                         >
                             Inquire Now <ArrowRight className="w-4 h-4" />
@@ -393,7 +393,7 @@ export default function Landing() {
                     <p className="text-xl text-slate-600 dark:text-slate-400 mb-12">Be a Part of Inventra to power your daily growth and operations.</p>
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                         <a 
-                            href="mailto:owner@posintory.com?subject=PoSintory Inquiry" 
+                            href="mailto:owner@inventra.com?subject=Inventra Inquiry" 
                             className="w-full sm:w-auto px-10 py-5 bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white rounded-2xl font-bold transition-all shadow-xl shadow-teal-500/30 flex items-center justify-center gap-2 text-lg"
                         >
                             Contact for Inquiries <ArrowRight className="w-5 h-5" />
