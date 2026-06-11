@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { api } from '../lib/api';
 import { 
@@ -20,33 +20,93 @@ import {
     Building2
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { toast, confirmAction } from '../lib/swal';
 
 export default function Layout({ children }) {
     const location = useLocation();
+    
+    // If it's a no-layout path, return children immediately without any setup!
+    const noLayoutPaths = ['/', '/login', '/register'];
+    if (noLayoutPaths.includes(location.pathname)) {
+        console.log('🔓 Login/landing page - skipping layout setup');
+        return children;
+    }
+
+    // --- ALL LAYOUT STATE AND EFFECTS ONLY RUN WHEN NOT ON NO-LAYOUT PATHS! ---
     const [isDark, setIsDark] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [user, setUser] = useState(null);
-    const [storedRole, setStoredRole] = useState(localStorage.getItem('user_role'));
+    const [isLoading, setIsLoading] = useState(true);
+    const [storedRole, setStoredRole] = useState(() => localStorage.getItem('user_role'));
 
     useEffect(() => {
+        console.log('=== MOUNTING Layout ===');
+        
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
             setIsDark(true);
             document.documentElement.classList.add('dark');
         }
+        
         loadUser();
     }, []);
 
     const loadUser = async () => {
-        try {
-            const res = await api.get('/user');
-            setUser(res.data);
-            if (res.data.role) {
-                localStorage.setItem('user_role', res.data.role);
-                setStoredRole(res.data.role);
+        console.log('=== loadUser CALLED ===');
+        setIsLoading(true);
+        
+        const storedRoleBefore = localStorage.getItem('user_role');
+        const storedUserBefore = localStorage.getItem('user');
+        const authToken = localStorage.getItem('auth_token');
+        
+        console.log('Stored role before API call:', storedRoleBefore);
+        console.log('Stored user before API call:', storedUserBefore ? JSON.parse(storedUserBefore) : null);
+        console.log('Auth token present:', !!authToken);
+        
+        // First, try to use stored user data while we fetch fresh data
+        let hasStoredData = false;
+        if (storedUserBefore) {
+            try {
+                const parsedUser = JSON.parse(storedUserBefore);
+                console.log('📦 Using stored user for initial state:', parsedUser);
+                setUser(parsedUser);
+                if (parsedUser.role) {
+                    setStoredRole(parsedUser.role);
+                }
+                hasStoredData = true;
+            } catch (e) {
+                console.error('Failed to parse stored user', e);
             }
-        } catch (e) {
-            console.error('Failed to load user');
         }
+        
+        // Only try to fetch from API if we actually have a token
+        if (authToken) {
+            try {
+                const res = await api.get('/user');
+                console.log('✅ User API SUCCESS:', res.data);
+                
+                setUser(res.data);
+                
+                if (res.data.role) {
+                    console.log('Setting stored role to:', res.data.role);
+                    localStorage.setItem('user_role', res.data.role);
+                    localStorage.setItem('user', JSON.stringify(res.data));
+                    setStoredRole(res.data.role);
+                }
+            } catch (e) {
+                console.error('❌ Failed to load user from API', e);
+                // Only redirect to login if we don't have any stored data
+                if (!hasStoredData && e.response?.status === 401) {
+                    console.log('⚠️ No stored data and 401 - redirecting to login');
+                    localStorage.clear();
+                    setUser(null);
+                    setStoredRole(null);
+                    window.location.href = '/login';
+                }
+            }
+        }
+        
+        console.log('Setting isLoading to false');
+        setIsLoading(false);
     };
 
     const toggleDark = () => {
@@ -59,6 +119,8 @@ export default function Layout({ children }) {
     };
 
     const currentRole = user?.role || storedRole;
+    console.log('💡 COMPUTED currentRole:', currentRole, '| user.role:', user?.role, '| storedRole:', storedRole);
+    
     const displayName = user?.name || 'User';
     const displayRole = !currentRole 
         ? 'Loading...' 
@@ -69,50 +131,84 @@ export default function Layout({ children }) {
     ];
 
     const tenantItems = [
-        { name: 'Point of Sale', path: '/pos', icon: ShoppingCart },
-        { name: 'Products', path: '/products', icon: Tag },
-        { name: 'Inventory', path: '/inventory', icon: Package },
-        { name: 'Purchasing', path: '/purchasing', icon: Truck },
-        { name: 'Sales', path: '/sales', icon: Receipt },
-        { name: 'Reports', path: '/reports', icon: BarChart3 },
-        { name: 'Customers', path: '/customers', icon: Users },
-        { name: 'Suppliers', path: '/suppliers', icon: Factory },
-        { name: 'Users & Roles', path: '/users', icon: Shield },
-        { name: 'Settings', path: '/settings', icon: Settings },
-        { name: 'Support', path: '/support', icon: Receipt }, // Reusing icon for now
+        { name: 'Point of Sale', path: '/tenant/pos', icon: ShoppingCart },
+        { name: 'Products', path: '/tenant/products', icon: Tag },
+        { name: 'Inventory', path: '/tenant/inventory', icon: Package },
+        { name: 'Purchasing', path: '/tenant/purchasing', icon: Truck },
+        { name: 'Sales', path: '/tenant/sales', icon: Receipt },
+        { name: 'Reports', path: '/tenant/reports', icon: BarChart3 },
+        { name: 'Customers', path: '/tenant/customers', icon: Users },
+        { name: 'Suppliers', path: '/tenant/suppliers', icon: Factory },
+        { name: 'Users & Roles', path: '/tenant/users', icon: Shield },
+        { name: 'Settings', path: '/tenant/settings', icon: Settings },
+        { name: 'Support', path: '/tenant/support', icon: Receipt }, // Reusing icon for now
+    ];
+
+    const cashierItems = [
+        { name: 'Dashboard', path: '/cashier/dashboard', icon: LayoutDashboard },
+        { name: 'Point of Sale', path: '/cashier/pos', icon: ShoppingCart },
+        { name: 'Support', path: '/cashier/support', icon: Receipt },
     ];
 
     const adminItems = [
-        { name: 'Tenants', path: '/admin/tenants', icon: Building2 },
-        { name: 'Support Tickets', path: '/admin/tickets', icon: Receipt },
-        { name: 'System Health', path: '/admin/health', icon: Shield },
+        { name: 'Dashboard', path: '/superadmin/dashboard', icon: LayoutDashboard },
+        { name: 'Tenants', path: '/superadmin/tenants', icon: Building2 },
+        { name: 'Users', path: '/superadmin/users', icon: Users },
+        { name: 'Support Tickets', path: '/superadmin/tickets', icon: Receipt },
+        { name: 'System Health', path: '/superadmin/health', icon: Shield },
     ];
 
-    const navItems = currentRole === 'super_admin' 
-        ? [...commonItems, ...adminItems] 
-        : (currentRole === 'cashier' 
-            ? [...commonItems, { name: 'Point of Sale', path: '/pos', icon: ShoppingCart }, { name: 'Support', path: '/support', icon: Receipt }]
-            : [...commonItems, ...tenantItems]);
-
-    // If it's the login or register page, don't show the layout shell
-    const noLayoutPaths = ['/', '/login', '/register'];
-    if (noLayoutPaths.includes(location.pathname)) {
-        return children;
-    }
+    const navItems = useMemo(() => {
+        console.log('\n========== RECALCULATING navItems ==========');
+        console.log('isLoading:', isLoading);
+        console.log('currentRole:', currentRole);
+        console.log('user.role:', user?.role);
+        console.log('storedRole:', storedRole);
+        
+        let items;
+        
+        if (isLoading) {
+            items = [];
+            console.log('🔄 isLoading - empty items');
+        } else if (currentRole === 'super_admin') {
+            items = adminItems;
+            console.log('✅ Using SUPER ADMIN navItems:', items.map(i => i.name));
+        } else if (currentRole === 'cashier') {
+            items = cashierItems;
+            console.log('✅ Using CASHIER navItems:', items.map(i => i.name));
+        } else {
+            items = [{ name: 'Dashboard', path: '/tenant/dashboard', icon: LayoutDashboard }, ...tenantItems];
+            console.log('✅ Using TENANT navItems:', items.map(i => i.name));
+        }
+        
+        console.log('FINAL navItems count:', items.length);
+        return items;
+    }, [isLoading, currentRole, user, storedRole]);
 
     const handleLogout = async () => {
+        const result = await confirmAction({
+            title: 'Log Out',
+            text: 'Are you sure you want to log out of your account?'
+        });
+        if (!result.isConfirmed) return;
+
         try {
             await api.post('/logout');
-            localStorage.removeItem('auth_token');
-            localStorage.removeItem('user_role');
-            window.location.href = '/login';
         } catch (e) {
             console.error('Logout failed', e);
-            // Fallback: clear token and redirect anyway
-            localStorage.removeItem('auth_token');
-            localStorage.removeItem('user_role');
-            window.location.href = '/login';
         }
+        
+        // Clear ALL localStorage data
+        localStorage.clear();
+        // Reset state
+        setUser(null);
+        setStoredRole(null);
+        toast.fire({
+            icon: 'success',
+            title: 'Logged out successfully'
+        });
+        // Redirect to login
+        window.location.href = '/login';
     };
 
     return (
@@ -128,7 +224,7 @@ export default function Layout({ children }) {
                             <Building2 className="w-5 h-5 text-white" />
                         </div>
                         <span className="font-bold text-zinc-900 dark:text-zinc-100 truncate max-w-[150px]">
-                            {currentRole === 'super_admin' ? 'System Console' : (user?.tenant?.name || 'POSinvent')}
+                            {displayRole === 'System Administrator' ? 'System Console' : (user?.tenant?.name || 'POSinvent')}
                         </span>
                     </div>
                     {/* Compact logo for collapsed state */}
@@ -140,7 +236,21 @@ export default function Layout({ children }) {
                 </div>
                 
                 <nav className="p-4 space-y-1 overflow-y-auto h-[calc(100vh-8rem)]">
-                    {navItems.map((item) => {
+                    {isLoading && (
+                        <div className="p-4 text-center">
+                            <div className="w-6 h-6 mx-auto border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                            <p className="mt-2 text-xs text-zinc-500">Loading...</p>
+                        </div>
+                    )}
+                    
+                    {!isLoading && navItems.length === 0 && (
+                        <div className="p-4 text-center">
+                            <p className="text-xs text-zinc-500">No menu items available</p>
+                            <p className="mt-1 text-[10px] text-zinc-400">Role: {currentRole || 'not set'}</p>
+                        </div>
+                    )}
+                    
+                    {!isLoading && navItems.map((item) => {
                         const Icon = item.icon;
                         const isActive = location.pathname === item.path;
                         
@@ -169,7 +279,7 @@ export default function Layout({ children }) {
                         className="flex w-full items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-rose-600 dark:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors"
                     >
                         <LogOut className="w-5 h-5 shrink-0" />
-                        <span className={cn(!isSidebarOpen && "lg:hidden")}>Log out</span>
+                        <span className={cn(!isSidebarOpen && "lg:hidden")}>Log Out</span>
                     </button>
                 </div>
             </aside>
@@ -188,6 +298,8 @@ export default function Layout({ children }) {
                         >
                             <Menu className="w-5 h-5" />
                         </button>
+                        
+
                     </div>
 
                     <div className="flex items-center gap-4">
@@ -198,31 +310,23 @@ export default function Layout({ children }) {
                             {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                         </button>
                         
-                        <div className="flex items-center gap-3 pl-4 border-l border-zinc-200 dark:border-zinc-800">
-                            <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-sm uppercase">
-                                {displayName.split(' ').map(n => n[0]).join('').substring(0, 2)}
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-sm">
+                                {displayName.charAt(0).toUpperCase()}
                             </div>
-                            <div className="hidden sm:block text-sm">
-                                <p className="font-medium text-zinc-900 dark:text-zinc-100">{displayName}</p>
-                                <p className="text-zinc-500 dark:text-zinc-400 text-xs">{displayRole}</p>
+                            <div className="hidden md:block">
+                                <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{displayName}</p>
+                                <p className="text-xs text-zinc-500 dark:text-zinc-400">{displayRole}</p>
                             </div>
                         </div>
                     </div>
                 </header>
-
-                {/* Page Content */}
-                <main className="flex-1 overflow-x-hidden p-6 sm:p-8">
+                
+                {/* Main Content */}
+                <main className="p-4 sm:p-6 flex-1">
                     {children}
                 </main>
             </div>
-            
-            {/* Mobile Overlay */}
-            {isSidebarOpen && (
-                <div 
-                    className="fixed inset-0 bg-black/20 dark:bg-black/40 z-40 lg:hidden backdrop-blur-sm"
-                    onClick={() => setIsSidebarOpen(false)}
-                />
-            )}
         </div>
     );
 }

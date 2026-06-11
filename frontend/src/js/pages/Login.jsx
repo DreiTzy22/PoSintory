@@ -24,6 +24,8 @@ export default function Login() {
 
         const { token: authToken, user } = response.data;
 
+        // Clear old localStorage data first
+        localStorage.clear();
         localStorage.setItem("auth_token", authToken);
         localStorage.setItem("user_role", user.role);
         localStorage.setItem("user", JSON.stringify(user));
@@ -35,7 +37,11 @@ export default function Login() {
         });
 
         if (user.role === "super_admin") {
-            navigate("/admin/tenants");
+            navigate("/superadmin/dashboard");
+        } else if (user.role === "tenant_admin" || user.role === "staff") {
+            navigate("/tenant/dashboard");
+        } else if (user.role === "cashier") {
+            navigate("/cashier/pos");
         } else {
             navigate("/dashboard");
         }

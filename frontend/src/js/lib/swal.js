@@ -33,7 +33,8 @@ export const alertError = (title, text) => {
     });
 };
 
-export const confirmAction = (title, text, confirmButtonText = 'Yes, proceed') => {
+export const confirmAction = (options) => {
+    const { title, text, confirmButtonText = 'Yes, proceed' } = typeof options === 'object' ? options : { title: arguments[0], text: arguments[1], confirmButtonText: arguments[2] };
     return MySwal.fire({
         title,
         text,

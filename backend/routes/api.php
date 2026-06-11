@@ -41,6 +41,11 @@ Route::middleware(['auth:sanctum', 'tenant.status'])->group(function () {
         Route::get('/tenants/{tenant}', [SuperAdminController::class, 'tenantDetails']);
         Route::put('/tenants/{tenant}', [SuperAdminController::class, 'updateTenant']);
         Route::get('/system-health', [SuperAdminController::class, 'systemHealth']);
+        Route::get('/analytics', [SuperAdminController::class, 'analytics']);
+        Route::get('/users', [SuperAdminController::class, 'users']);
+        Route::post('/users', [SuperAdminController::class, 'storeUser']);
+        Route::put('/users/{user}', [SuperAdminController::class, 'updateUser']);
+        Route::delete('/users/{user}', [SuperAdminController::class, 'deleteUser']);
     });
 
     Route::get('/settings', [SettingController::class, 'index']);

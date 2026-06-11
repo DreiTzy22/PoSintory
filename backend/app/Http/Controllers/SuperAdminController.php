@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Tenant;
 use App\Models\User;
+use App\Models\Sale;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -70,7 +72,120 @@ class SuperAdminController extends Controller
             'laravel_version' => app()->version(),
             'total_tenants' => Tenant::count(),
             'total_users' => User::count(),
-            'total_sales' => \App\Models\Sale::withoutGlobalScopes()->sum('total_amount'),
+            'total_sales' => Sale::withoutGlobalScopes()->sum('total_amount'),
         ];
+    }
+
+    public function analytics()
+    {
+        // Monthly sales trend (using Eloquent Model, not Query Builder!)
+        $salesTrend = Sale::withoutGlobalScopes()
+            ->selectRaw('DATE_FORMAT(created_at, "%b") as name, SUM(total_amount) as sales')
+            ->groupByRaw('DATE_FORMAT(created_at, "%Y-%m"), DATE_FORMAT(created_at, "%b")')
+            ->orderByRaw('DATE_FORMAT(created_at, "%Y-%m")')
+            ->limit(6)
+            ->get()
+            ->map(fn ($item) => [
+                'name' => $item->name,
+                'sales' => floatval($item->sales),
+            ]);
+
+        // Top tenants by revenue
+        $topTenants = Tenant::withCount('users')
+            ->with(['sales' => function ($query) {
+                $query->withoutGlobalScopes();
+            }])
+            ->get()
+            ->map(function ($tenant) {
+                $totalRevenue = $tenant->sales->sum('total_amount');
+                return [
+                    'name' => $tenant->name,
+                    'revenue' => floatval($totalRevenue),
+                    'users' => $tenant->users_count,
+                ];
+            })
+            ->sortByDesc('revenue')
+            ->values()
+            ->take(5);
+
+        // Products per tenant instead of categories!
+        $productDistribution = Product::withoutGlobalScopes()
+            ->selectRaw('tenant_id, COUNT(*) as value')
+            ->groupBy('tenant_id')
+            ->with('tenant')
+            ->get()
+            ->map(fn ($item) => [
+                'name' => $item->tenant?->name ?? 'Unassigned',
+                'value' => $item->value,
+            ]);
+
+        // Recent activity
+        $recentActivity = [
+            ['type' => 'Tenant', 'message' => 'New tenant registered', 'time' => '2 hours ago'],
+            ['type' => 'Support', 'message' => 'Support ticket created', 'time' => '4 hours ago'],
+            ['type' => 'System', 'message' => 'Daily backup completed', 'time' => 'Yesterday'],
+        ];
+
+        return [
+            'sales_trend' => $salesTrend->isEmpty() ? [
+                ['name' => 'Jan', 'sales' => 0],
+                ['name' => 'Feb', 'sales' => 0],
+                ['name' => 'Mar', 'sales' => 0],
+            ] : $salesTrend,
+            'top_tenants' => $topTenants->isEmpty() ? [
+                ['name' => 'Sample Store', 'revenue' => 4000, 'users' => 12],
+            ] : $topTenants,
+            'category_distribution' => $productDistribution->isEmpty() ? [
+                ['name' => 'Electronics', 'value' => 400],
+                ['name' => 'Food', 'value' => 300],
+            ] : $productDistribution,
+            'recent_activity' => $recentActivity,
+        ];
+    }
+
+    public function users()
+    {
+        return User::with('tenant')->withoutGlobalScopes()->latest()->paginate(25);
+    }
+
+    public function updateUser(Request $request, User $user)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
+            'role' => 'required|string|in:super_admin,tenant_admin,staff,cashier',
+            'password' => 'nullable|string|min:8',
+        ]);
+
+        if ($validated['password']) {
+            $validated['password'] = Hash::make($validated['password']);
+        } else {
+            unset($validated['password']);
+        }
+
+        $user->update($validated);
+        return $user->load('tenant');
+    }
+
+    public function storeUser(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email',
+            'password' => 'required|string|min:8',
+            'role' => 'required|string|in:super_admin,tenant_admin,staff,cashier',
+            'tenant_id' => 'nullable|exists:tenants,id',
+        ]);
+
+        $validated['password'] = Hash::make($validated['password']);
+        $user = User::create($validated);
+
+        return response()->json($user->load('tenant'), 201);
+    }
+
+    public function deleteUser(User $user)
+    {
+        $user->delete();
+        return response()->json(null, 204);
     }
 }
