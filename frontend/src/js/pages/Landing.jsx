@@ -102,7 +102,7 @@ export default function Landing() {
                         <div className="bg-gradient-to-br from-teal-500 to-cyan-600 p-1.5 rounded-lg">
                             <Building2 className="w-5 h-5 text-white" />
                         </div>
-                        <span className="font-bold text-xl text-slate-900 dark:text-slate-50 tracking-tight">Inventra</span>
+                        <span className="font-bold text-xl text-slate-900 dark:text-slate-50 tracking-tight">PoSintory</span>
                     </div>
                     <div className="hidden md:flex items-center gap-8">
                         <a href="#features" className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">Features</a>
@@ -126,7 +126,7 @@ export default function Landing() {
                             Sign In
                         </Link>
                         <a 
-                            href="mailto:deantavas02@gmail.com?subject=Inventra Inquiry" 
+                            href="mailto:deantavas02@gmail.com?subject=PoSintory Inquiry" 
                             className="px-4 py-2 bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white rounded-lg text-sm font-semibold transition-all shadow-md shadow-teal-500/25"
                         >   
                             Inquire Now
@@ -156,7 +156,7 @@ export default function Landing() {
                     </p>
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                         <a 
-                            href="mailto:owner@inventra.com?subject=Inventra Inquiry" 
+                            href="mailto:owner@posintory.com?subject=PoSintory Inquiry" 
                             className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:scale-105 transition-all shadow-xl shadow-teal-500/30"
                         >
                             Inquire Now <ArrowRight className="w-4 h-4" />
@@ -248,7 +248,7 @@ export default function Landing() {
                 <div className="max-w-7xl mx-auto px-4">
                     <div className="text-center max-w-3xl mx-auto mb-20">
                         <h2 className="text-4xl font-bold text-slate-900 dark:text-slate-50 mb-6">Built for performance</h2>
-                        <p className="text-lg text-slate-600 dark:text-slate-400">Inventra provides a comprehensive suite of tools designed to scale with your business needs.</p>
+                        <p className="text-lg text-slate-600 dark:text-slate-400">PoSintory provides a comprehensive suite of tools designed to scale with your business needs.</p>
                     </div>
                     <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
                         {features.map((f) => (
@@ -334,11 +334,11 @@ export default function Landing() {
                 </div>
             </section>
 
-            {/* Why Choose Inventra Section */}
+            {/* Why Choose PoSintory Section */}
             <section className="py-24 bg-slate-50 dark:bg-slate-900/50">
                 <div className="max-w-7xl mx-auto px-4">
                     <div className="text-center max-w-3xl mx-auto mb-20">
-                        <h2 className="text-4xl font-bold text-slate-900 dark:text-slate-50 mb-6">Why Choose Inventra?</h2>
+                        <h2 className="text-4xl font-bold text-slate-900 dark:text-slate-50 mb-6">Why Choose PoSintory?</h2>
                         <p className="text-lg text-slate-600 dark:text-slate-400">Everything you need to run your business efficiently, all in one place.</p>
                     </div>
                     <div className="grid md:grid-cols-2 gap-8">
@@ -393,7 +393,7 @@ export default function Landing() {
                     <p className="text-xl text-slate-600 dark:text-slate-400 mb-12">Be a Part of Inventra to power your daily growth and operations.</p>
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                         <a 
-                            href="mailto:owner@inventra.com?subject=Inventra Inquiry" 
+                            href="mailto:owner@posintory.com?subject=PoSintory Inquiry" 
                             className="w-full sm:w-auto px-10 py-5 bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white rounded-2xl font-bold transition-all shadow-xl shadow-teal-500/30 flex items-center justify-center gap-2 text-lg"
                         >
                             Contact for Inquiries <ArrowRight className="w-5 h-5" />
@@ -417,7 +417,7 @@ export default function Landing() {
                                 <div className="bg-gradient-to-br from-teal-500 to-cyan-600 p-1.5 rounded-lg">
                                     <Building2 className="w-5 h-5 text-white" />
                                 </div>
-                                <span className="font-bold text-xl text-slate-900 dark:text-slate-50 tracking-tight">Inventra</span>
+                                <span className="font-bold text-xl text-slate-900 dark:text-slate-50 tracking-tight">PoSintory</span>
                             </div>
                             <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                                 Empowering small to medium businesses with enterprise-grade POS and inventory solutions.
@@ -450,7 +450,7 @@ export default function Landing() {
                     </div>
                     <div className="pt-8 border-t border-slate-200 dark:border-slate-800 text-center">
                         <p className="text-slate-600 dark:text-slate-400 text-sm">
-                            © 2026 Inventra. Built for modern businesses.
+                            © 2026 PoSintory. Built for modern businesses.
                         </p>
                     </div>
                 </div>
