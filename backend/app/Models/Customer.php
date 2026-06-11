@@ -18,5 +18,11 @@ class Customer extends Model
         'credit_limit',
         'balance',
         'tenant_id',
+        'branch_id',
     ];
+
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
+    }
 }

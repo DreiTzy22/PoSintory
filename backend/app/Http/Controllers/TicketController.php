@@ -18,7 +18,7 @@ class TicketController extends Controller
             $query->withoutGlobalScopes();
         }
 
-        return $query->latest()->paginate(25);
+        return $query->latest()->get();
     }
 
     public function store(Request $request)

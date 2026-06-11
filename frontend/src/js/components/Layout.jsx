@@ -17,10 +17,12 @@ import {
     Sun,
     Moon,
     Menu,
-    Building2
+    Building2,
+    MapPin
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { toast, confirmAction } from '../lib/swal';
+import { useTheme } from '../lib/useTheme';
 
 export default function Layout({ children }) {
     const location = useLocation();
@@ -33,7 +35,7 @@ export default function Layout({ children }) {
     }
 
     // --- ALL LAYOUT STATE AND EFFECTS ONLY RUN WHEN NOT ON NO-LAYOUT PATHS! ---
-    const [isDark, setIsDark] = useState(false);
+    const { isDark, toggleDark } = useTheme();
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [user, setUser] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -41,12 +43,6 @@ export default function Layout({ children }) {
 
     useEffect(() => {
         console.log('=== MOUNTING Layout ===');
-        
-        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            setIsDark(true);
-            document.documentElement.classList.add('dark');
-        }
-        
         loadUser();
     }, []);
 
@@ -109,14 +105,7 @@ export default function Layout({ children }) {
         setIsLoading(false);
     };
 
-    const toggleDark = () => {
-        setIsDark(!isDark);
-        if (!isDark) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-    };
+
 
     const currentRole = user?.role || storedRole;
     console.log('💡 COMPUTED currentRole:', currentRole, '| user.role:', user?.role, '| storedRole:', storedRole);
@@ -124,7 +113,11 @@ export default function Layout({ children }) {
     const displayName = user?.name || 'User';
     const displayRole = !currentRole 
         ? 'Loading...' 
-        : (currentRole === 'super_admin' ? 'System Administrator' : (user?.tenant?.name || 'Business Owner'));
+        : currentRole === 'super_admin' 
+            ? 'System Administrator' 
+            : currentRole === 'branch_manager' 
+                ? 'Branch Manager' 
+                : (user?.tenant?.name || 'Business Owner');
 
     const commonItems = [
         { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
@@ -139,8 +132,22 @@ export default function Layout({ children }) {
         { name: 'Reports', path: '/tenant/reports', icon: BarChart3 },
         { name: 'Customers', path: '/tenant/customers', icon: Users },
         { name: 'Suppliers', path: '/tenant/suppliers', icon: Factory },
+        { name: 'Branches', path: '/tenant/branches', icon: MapPin },
         { name: 'Users & Roles', path: '/tenant/users', icon: Shield },
         { name: 'Settings', path: '/tenant/settings', icon: Settings },
+        { name: 'Support', path: '/tenant/support', icon: Receipt }, // Reusing icon for now
+    ];
+
+    const branchManagerItems = [
+        { name: 'Branch Dashboard', path: '/tenant/branchmanager', icon: MapPin },
+        { name: 'Point of Sale', path: '/tenant/pos', icon: ShoppingCart },
+        { name: 'Products', path: '/tenant/products', icon: Tag },
+        { name: 'Inventory', path: '/tenant/inventory', icon: Package },
+        { name: 'Purchasing', path: '/tenant/purchasing', icon: Truck },
+        { name: 'Sales', path: '/tenant/sales', icon: Receipt },
+        { name: 'Reports', path: '/tenant/reports', icon: BarChart3 },
+        { name: 'Customers', path: '/tenant/customers', icon: Users },
+        { name: 'Suppliers', path: '/tenant/suppliers', icon: Factory },
         { name: 'Support', path: '/tenant/support', icon: Receipt }, // Reusing icon for now
     ];
 
@@ -176,6 +183,9 @@ export default function Layout({ children }) {
         } else if (currentRole === 'cashier') {
             items = cashierItems;
             console.log('✅ Using CASHIER navItems:', items.map(i => i.name));
+        } else if (currentRole === 'branch_manager') {
+            items = branchManagerItems;
+            console.log('✅ Using BRANCH MANAGER navItems:', items.map(i => i.name));
         } else {
             items = [{ name: 'Dashboard', path: '/tenant/dashboard', icon: LayoutDashboard }, ...tenantItems];
             console.log('✅ Using TENANT navItems:', items.map(i => i.name));
@@ -304,7 +314,10 @@ export default function Layout({ children }) {
 
                     <div className="flex items-center gap-4">
                         <button 
-                            onClick={toggleDark}
+                            onClick={(e) => {
+                                console.log('Layout button clicked!');
+                                toggleDark();
+                            }}
                             className="p-2 rounded-full text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
                         >
                             {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}

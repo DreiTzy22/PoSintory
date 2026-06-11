@@ -19,6 +19,7 @@ export default function POS() {
     const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
     const [lastSale, setLastSale] = useState(null);
     const [newCustomer, setNewCustomer] = useState({ name: '', email: '', phone: '' });
+    const [user, setUser] = useState(null);
 
     const paymentMethods = [
         { id: 'Cash', label: 'Cash', icon: CreditCard },
@@ -28,15 +29,25 @@ export default function POS() {
     ];
 
     useEffect(() => {
+        loadUser();
         loadProducts();
         loadCustomers();
     }, []);
 
+    const loadUser = async () => {
+        try {
+            const res = await api.get('/user');
+            setUser(res.data);
+        } catch (e) {
+            console.error('Failed to load user', e);
+        }
+    };
+
     const loadProducts = async (search = '') => {
         setIsLoading(true);
         try {
-            const res = await api.get(`/products?search=${search}&per_page=100`);
-            setProducts(res.data?.data ?? []);
+            const res = await api.get(search ? `/products?search=${search}` : '/products');
+            setProducts(res.data ?? []);
         } catch (e) {
             console.error('Failed to load products', e);
         } finally {
@@ -46,8 +57,8 @@ export default function POS() {
 
     const loadCustomers = async (search = '') => {
         try {
-            const res = await api.get(`/customers?search=${search}&per_page=50`);
-            setCustomers(res.data?.data ?? []);
+            const res = await api.get(search ? `/customers?search=${search}` : '/customers');
+            setCustomers(res.data ?? []);
         } catch (e) {
             console.error('Failed to load customers', e);
         }
@@ -142,6 +153,7 @@ export default function POS() {
         try {
             const res = await api.post('/sales', {
                 customer_id: selectedCustomer?.id,
+                branch_id: user?.branch_id,
                 total_amount: totals.total,
                 payment_method: paymentMethod,
                 items: cart.map(item => ({
@@ -173,7 +185,10 @@ export default function POS() {
     const handleAddCustomer = async (e) => {
         e.preventDefault();
         try {
-            const res = await api.post('/customers', newCustomer);
+            const res = await api.post('/customers', {
+                ...newCustomer,
+                branch_id: user?.branch_id
+            });
             setCustomers(prev => [res.data, ...prev]);
             setSelectedCustomer(res.data);
             setIsNewCustomerModalOpen(false);
@@ -544,7 +559,7 @@ export default function POS() {
                                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 mb-2 print:hidden">
                                     <CheckCircle2 className="w-6 h-6" />
                                 </div>
-                                <h2 className="text-xl font-bold tracking-tight">PoSintory</h2>
+                                <h2 className="text-xl font-bold tracking-tight">Inventra</h2>
                                 <p className="text-xs text-zinc-500">Official Receipt</p>
                             </div>
 

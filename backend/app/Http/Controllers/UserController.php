@@ -14,7 +14,7 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
-        $query = User::query();
+        $query = User::with('branch');
 
         // Manual scoping for User model since BelongsToTenant was removed
         if (Auth::user()->role !== 'super_admin') {
@@ -28,7 +28,7 @@ class UserController extends Controller
                   ->orWhere('email', 'like', "%{$search}%");
             });
         }
-        return $query->latest('id')->paginate($request->get('per_page', 25));
+        return $query->latest('id')->get();
     }
 
     public function store(Request $request)
@@ -37,7 +37,8 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users',
             'password' => 'required|string|min:8',
-            'role' => 'required|string|in:tenant_admin,staff,cashier',
+            'role' => 'required|string|in:tenant_admin,branch_manager,staff,cashier',
+            'branch_id' => 'nullable|exists:branches,id',
         ]);
 
         $user = User::create([
@@ -46,9 +47,10 @@ class UserController extends Controller
             'password' => Hash::make($validated['password']),
             'role' => $validated['role'],
             'tenant_id' => Auth::user()->tenant_id,
+            'branch_id' => $validated['branch_id'] ?? null,
         ]);
 
-        return response()->json($user, 201);
+        return response()->json($user->load('branch'), 201);
     }
 
     public function show(User $user)
@@ -57,7 +59,7 @@ class UserController extends Controller
         if (Auth::user()->role !== 'super_admin' && $user->tenant_id !== Auth::user()->tenant_id) {
             abort(403);
         }
-        return $user;
+        return $user->load('branch');
     }
 
     public function update(Request $request, User $user)
@@ -71,7 +73,8 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,' . $user->id,
             'password' => 'nullable|string|min:8',
-            'role' => 'nullable|string|in:tenant_admin,staff,cashier',
+            'role' => 'nullable|string|in:tenant_admin,branch_manager,staff,cashier',
+            'branch_id' => 'nullable|exists:branches,id',
         ]);
 
         $data = [
@@ -86,9 +89,13 @@ class UserController extends Controller
         if (!empty($validated['role'])) {
             $data['role'] = $validated['role'];
         }
+        
+        if (array_key_exists('branch_id', $validated)) {
+            $data['branch_id'] = $validated['branch_id'];
+        }
 
         $user->update($data);
-        return $user;
+        return $user->load('branch');
     }
 
     public function destroy(User $user)

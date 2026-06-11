@@ -37,7 +37,7 @@ export default function Register() {
             toast.fire({
                 icon: 'success',
                 title: 'Registration successful!',
-                text: 'Welcome to PoSintory.'
+                text: 'Welcome to Inventra.'
             });
 
             navigate("/dashboard");

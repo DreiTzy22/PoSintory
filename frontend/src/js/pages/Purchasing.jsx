@@ -32,8 +32,8 @@ export default function Purchasing() {
         setIsLoading(true);
         setError('');
         try {
-            const res = await api.get('/purchase-orders?per_page=100');
-            setItems(res.data?.data ?? []);
+            const res = await api.get('/purchase-orders');
+            setItems(res.data ?? []);
         } catch (e) {
             setError('Unable to load purchase orders.');
         } finally {
@@ -43,8 +43,8 @@ export default function Purchasing() {
 
     const loadSuppliers = async () => {
         try {
-            const res = await api.get('/suppliers?per_page=100');
-            setSuppliers(res.data?.data ?? []);
+            const res = await api.get('/suppliers');
+            setSuppliers(res.data ?? []);
         } catch (e) {
             console.error('Failed to load suppliers');
         }

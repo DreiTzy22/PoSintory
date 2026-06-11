@@ -24,7 +24,7 @@ class ProductController extends Controller
             });
         }
 
-        return $query->latest('id')->paginate($request->get('per_page', 25));
+        return $query->latest('id')->get();
     }
 
     /**

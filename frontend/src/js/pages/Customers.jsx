@@ -30,8 +30,8 @@ export default function Customers() {
         setIsLoading(true);
         setError('');
         try {
-            const res = await api.get('/customers?per_page=100');
-            setItems(res.data?.data ?? []);
+            const res = await api.get('/customers');
+            setItems(res.data ?? []);
         } catch (e) {
             setError('Unable to load customers. Please login and try again.');
         } finally {

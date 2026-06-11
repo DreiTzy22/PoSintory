@@ -21,7 +21,7 @@ export default function Sales() {
         setError('');
         try {
             const res = await api.get('/sales');
-            setItems(res.data?.data ?? []);
+            setItems(res.data ?? []);
         } catch (e) {
             setError('Unable to load sales. Please login and try again.');
         } finally {

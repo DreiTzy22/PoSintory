@@ -23,6 +23,7 @@ class UpdateSaleRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'branch_id' => ['sometimes', 'nullable', 'exists:branches,id'],
             'total_amount' => ['sometimes', 'required', 'numeric', 'min:0'],
             'payment_method' => ['sometimes', 'required', 'string', 'max:50'],
             'status' => ['sometimes', 'nullable', 'string', 'max:50'],

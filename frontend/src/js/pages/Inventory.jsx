@@ -23,8 +23,8 @@ export default function Inventory() {
         setIsLoading(true);
         setError('');
         try {
-            const res = await api.get('/products?per_page=100');
-            setItems(res.data?.data ?? []);
+            const res = await api.get('/products');
+            setItems(res.data ?? []);
         } catch (e) {
             setError('Unable to load inventory.');
         } finally {

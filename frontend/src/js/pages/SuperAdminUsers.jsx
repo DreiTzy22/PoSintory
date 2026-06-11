@@ -28,7 +28,7 @@ export default function SuperAdminUsers() {
         setIsLoading(true);
         try {
             const res = await api.get('/admin/users');
-            setItems(res.data?.data ?? []);
+            setItems(res.data ?? []);
         } catch (e) {
             console.error('Failed to load users');
         } finally {
@@ -39,7 +39,7 @@ export default function SuperAdminUsers() {
     const loadTenants = async () => {
         try {
             const res = await api.get('/admin/tenants');
-            setTenants(res.data?.data ?? []);
+            setTenants(res.data ?? []);
         } catch (e) {
             console.error('Failed to load tenants');
         }

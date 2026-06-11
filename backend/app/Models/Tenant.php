@@ -22,4 +22,29 @@ class Tenant extends Model
     {
         return $this->hasMany(Sale::class);
     }
+
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
+
+    public function customers()
+    {
+        return $this->hasMany(Customer::class);
+    }
+
+    public function suppliers()
+    {
+        return $this->hasMany(Supplier::class);
+    }
+
+    public function purchaseOrders()
+    {
+        return $this->hasMany(PurchaseOrder::class);
+    }
+
+    public function branches()
+    {
+        return $this->hasMany(Branch::class);
+    }
 }

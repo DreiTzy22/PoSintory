@@ -135,7 +135,7 @@ export default function Login() {
                             Need an account?{" "}
                         </span>
                         <a
-                            href="mailto:itsmeyui21@gmail.com?subject=PoSintory Inquiry"
+                            href="mailto:itsmeyui21@gmail.com?subject=Inventra Inquiry"
                             className="font-medium text-indigo-600 dark:text-indigo-400 hover:underline"
                         >
                             Contact the Owner

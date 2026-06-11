@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../lib/api';
-import { Plus, Search, Edit2, Trash2, X, Shield, AlertCircle, Mail, Key } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, X, Shield, AlertCircle, Mail, Key, MapPin } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 export default function UsersAndRoles() {
     const [items, setItems] = useState([]);
+    const [branches, setBranches] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
@@ -16,22 +17,27 @@ export default function UsersAndRoles() {
         name: '',
         email: '',
         password: '',
-        role: 'staff'
+        role: 'staff',
+        branch_id: null
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
-        loadUsers();
+        loadData();
     }, []);
 
-    const loadUsers = async () => {
+    const loadData = async () => {
         setIsLoading(true);
         setError('');
         try {
-            const res = await api.get('/users?per_page=100');
-            setItems(res.data?.data ?? []);
+            const [usersRes, branchesRes] = await Promise.all([
+                api.get('/users'),
+                api.get('/branches')
+            ]);
+            setItems(usersRes.data ?? []);
+            setBranches(branchesRes.data ?? []);
         } catch (e) {
-            setError('Unable to load users. Please login and try again.');
+            setError('Unable to load data. Please login and try again.');
         } finally {
             setIsLoading(false);
         }
@@ -44,7 +50,8 @@ export default function UsersAndRoles() {
                 name: user.name,
                 email: user.email,
                 password: '', // Don't show password
-                role: user.role || 'staff'
+                role: user.role || 'staff',
+                branch_id: user.branch_id || null
             });
         } else {
             setEditingUser(null);
@@ -52,7 +59,8 @@ export default function UsersAndRoles() {
                 name: '',
                 email: '',
                 password: '',
-                role: 'staff'
+                role: 'staff',
+                branch_id: null
             });
         }
         setIsModalOpen(true);
@@ -68,8 +76,9 @@ export default function UsersAndRoles() {
                 await api.post('/users', formData);
             }
             setIsModalOpen(false);
-            loadUsers();
+            loadData();
         } catch (e) {
+            console.error('Error saving user:', e);
             alert('Failed to save user. Please check your inputs.');
         } finally {
             setIsSubmitting(false);
@@ -140,6 +149,7 @@ export default function UsersAndRoles() {
                                 <tr>
                                     <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">User</th>
                                     <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">Role</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">Branch</th>
                                     <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">Status</th>
                                     <th className="px-4 py-3 text-right text-xs font-semibold text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">Actions</th>
                                 </tr>
@@ -147,7 +157,7 @@ export default function UsersAndRoles() {
                             <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
                                 {isLoading ? (
                                     <tr>
-                                        <td className="px-4 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400" colSpan={4}>
+                                        <td className="px-4 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400" colSpan={5}>
                                             <div className="flex items-center justify-center gap-2">
                                                 <div className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
                                                 Loading users…
@@ -156,13 +166,15 @@ export default function UsersAndRoles() {
                                     </tr>
                                 ) : filteredItems.length === 0 ? (
                                     <tr>
-                                        <td className="px-4 py-12 text-center text-sm text-zinc-500 dark:text-zinc-400" colSpan={4}>
+                                        <td className="px-4 py-12 text-center text-sm text-zinc-500 dark:text-zinc-400" colSpan={5}>
                                             <Shield className="w-12 h-12 mx-auto opacity-10 mb-3" />
                                             {searchQuery ? 'No users match your search.' : 'No users yet.'}
                                         </td>
                                     </tr>
                                 ) : (
-                                    filteredItems.map((u) => (
+                                    filteredItems.map((u) => {
+                                        const userBranch = branches.find(b => b.id === u.branch_id);
+                                        return (
                                         <tr key={u.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors">
                                             <td className="px-4 py-3">
                                                 <div className="flex items-center gap-3">
@@ -182,11 +194,24 @@ export default function UsersAndRoles() {
                                                 <span className={cn(
                                                     "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border",
                                                     u.role === 'tenant_admin' ? "bg-indigo-100 text-indigo-700 border-indigo-200" :
+                                                    u.role === 'branch_manager' ? "bg-teal-100 text-teal-700 border-teal-200" :
                                                     u.role === 'cashier' ? "bg-amber-100 text-amber-700 border-amber-200" :
                                                     "bg-zinc-100 text-zinc-700 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700"
                                                 )}>
-                                                    {u.role === 'tenant_admin' ? 'Manager' : u.role.charAt(0).toUpperCase() + u.role.slice(1)}
+                                                    {u.role === 'tenant_admin' ? 'Owner' : 
+                                                     u.role === 'branch_manager' ? 'Branch Manager' : 
+                                                     u.role.charAt(0).toUpperCase() + u.role.slice(1)}
                                                 </span>
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                {userBranch ? (
+                                                    <span className="inline-flex items-center gap-1 text-xs text-zinc-700 dark:text-zinc-300">
+                                                        <MapPin className="w-3 h-3" />
+                                                        {userBranch.name}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-xs text-zinc-500">No Branch</span>
+                                                )}
                                             </td>
                                             <td className="px-4 py-3">
                                                 <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400">
@@ -210,7 +235,7 @@ export default function UsersAndRoles() {
                                                 </button>
                                             </td>
                                         </tr>
-                                    ))
+                                    )})
                                 )}
                             </tbody>
                         </table>
@@ -276,9 +301,25 @@ export default function UsersAndRoles() {
                                         onChange={e => setFormData({...formData, role: e.target.value})}
                                         className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-transparent px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none dark:text-zinc-100 dark:bg-zinc-900"
                                     >
-                                        <option value="tenant_admin">Manager</option>
+                                        <option value="tenant_admin">Owner</option>
+                                        <option value="branch_manager">Branch Manager</option>
                                         <option value="staff">Staff</option>
                                         <option value="cashier">Cashier</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase">Branch</label>
+                                    <select 
+                                        value={formData.branch_id || ''}
+                                        onChange={e => setFormData({...formData, branch_id: e.target.value ? parseInt(e.target.value) : null})}
+                                        className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-transparent px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none dark:text-zinc-100 dark:bg-zinc-900"
+                                    >
+                                        <option value="">No Branch</option>
+                                        {branches.map(branch => (
+                                            <option key={branch.id} value={branch.id}>
+                                                {branch.name}
+                                            </option>
+                                        ))}
                                     </select>
                                 </div>
                             </div>

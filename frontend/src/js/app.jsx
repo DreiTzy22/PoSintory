@@ -7,6 +7,7 @@ import Layout from "./components/Layout";
 import Login from "./pages/Login";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
+import BranchManagerDashboard from "./pages/BranchManagerDashboard";
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import POS from "./pages/POS";
 import Products from "./pages/Products";
@@ -23,6 +24,7 @@ import Customers from "./pages/Customers";
 import Suppliers from "./pages/Suppliers";
 import UsersAndRoles from "./pages/UsersAndRoles";
 import Settings from "./pages/Settings";
+import Branches from "./pages/Branches";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -44,17 +46,21 @@ const App = () => {
 
                     {/* Tenant Admin / Staff Routes */}
                     <Route path="/tenant/dashboard" element={<ProtectedRoute allowedRoles={['tenant_admin', 'staff']}><Dashboard /></ProtectedRoute>} />
-                    <Route path="/tenant/pos" element={<ProtectedRoute allowedRoles={['tenant_admin', 'staff', 'cashier']}><POS /></ProtectedRoute>} />
-                    <Route path="/tenant/products" element={<ProtectedRoute allowedRoles={['tenant_admin', 'staff']}><Products /></ProtectedRoute>} />
-                    <Route path="/tenant/inventory" element={<ProtectedRoute allowedRoles={['tenant_admin', 'staff']}><Inventory /></ProtectedRoute>} />
-                    <Route path="/tenant/purchasing" element={<ProtectedRoute allowedRoles={['tenant_admin', 'staff']}><Purchasing /></ProtectedRoute>} />
-                    <Route path="/tenant/sales" element={<ProtectedRoute allowedRoles={['tenant_admin', 'staff']}><Sales /></ProtectedRoute>} />
-                    <Route path="/tenant/reports" element={<ProtectedRoute allowedRoles={['tenant_admin', 'staff']}><Reports /></ProtectedRoute>} />
-                    <Route path="/tenant/customers" element={<ProtectedRoute allowedRoles={['tenant_admin', 'staff']}><Customers /></ProtectedRoute>} />
-                    <Route path="/tenant/suppliers" element={<ProtectedRoute allowedRoles={['tenant_admin', 'staff']}><Suppliers /></ProtectedRoute>} />
-                    <Route path="/tenant/support" element={<ProtectedRoute allowedRoles={['tenant_admin', 'staff']}><Support /></ProtectedRoute>} />
+                    <Route path="/tenant/pos" element={<ProtectedRoute allowedRoles={['tenant_admin', 'staff', 'cashier', 'branch_manager']}><POS /></ProtectedRoute>} />
+                    <Route path="/tenant/products" element={<ProtectedRoute allowedRoles={['tenant_admin', 'staff', 'branch_manager']}><Products /></ProtectedRoute>} />
+                    <Route path="/tenant/inventory" element={<ProtectedRoute allowedRoles={['tenant_admin', 'staff', 'branch_manager']}><Inventory /></ProtectedRoute>} />
+                    <Route path="/tenant/purchasing" element={<ProtectedRoute allowedRoles={['tenant_admin', 'staff', 'branch_manager']}><Purchasing /></ProtectedRoute>} />
+                    <Route path="/tenant/sales" element={<ProtectedRoute allowedRoles={['tenant_admin', 'staff', 'branch_manager']}><Sales /></ProtectedRoute>} />
+                    <Route path="/tenant/reports" element={<ProtectedRoute allowedRoles={['tenant_admin', 'staff', 'branch_manager']}><Reports /></ProtectedRoute>} />
+                    <Route path="/tenant/customers" element={<ProtectedRoute allowedRoles={['tenant_admin', 'staff', 'branch_manager']}><Customers /></ProtectedRoute>} />
+                    <Route path="/tenant/suppliers" element={<ProtectedRoute allowedRoles={['tenant_admin', 'staff', 'branch_manager']}><Suppliers /></ProtectedRoute>} />
+                    <Route path="/tenant/branches" element={<ProtectedRoute allowedRoles={['tenant_admin', 'staff']}><Branches /></ProtectedRoute>} />
+                    <Route path="/tenant/support" element={<ProtectedRoute allowedRoles={['tenant_admin', 'staff', 'branch_manager']}><Support /></ProtectedRoute>} />
                     <Route path="/tenant/users" element={<ProtectedRoute allowedRoles={['tenant_admin']}><UsersAndRoles /></ProtectedRoute>} />
                     <Route path="/tenant/settings" element={<ProtectedRoute allowedRoles={['tenant_admin']}><Settings /></ProtectedRoute>} />
+                    
+                    {/* Branch Manager Routes */}
+                    <Route path="/tenant/branchmanager" element={<ProtectedRoute allowedRoles={['branch_manager']}><BranchManagerDashboard /></ProtectedRoute>} />
 
                     {/* Cashier Routes */}
                     <Route path="/cashier/dashboard" element={<ProtectedRoute allowedRoles={['cashier', 'tenant_admin', 'staff']}><Dashboard /></ProtectedRoute>} />
@@ -71,6 +77,7 @@ const App = () => {
                     <Route path="/reports" element={<ProtectedRoute allowedRoles={['tenant_admin', 'staff']}><Reports /></ProtectedRoute>} />
                     <Route path="/customers" element={<ProtectedRoute allowedRoles={['tenant_admin', 'staff']}><Customers /></ProtectedRoute>} />
                     <Route path="/suppliers" element={<ProtectedRoute allowedRoles={['tenant_admin', 'staff']}><Suppliers /></ProtectedRoute>} />
+                    <Route path="/branches" element={<ProtectedRoute allowedRoles={['tenant_admin', 'staff']}><Branches /></ProtectedRoute>} />
                     <Route path="/support" element={<ProtectedRoute allowedRoles={['tenant_admin', 'staff', 'cashier']}><Support /></ProtectedRoute>} />
                     <Route path="/users" element={<ProtectedRoute allowedRoles={['tenant_admin']}><UsersAndRoles /></ProtectedRoute>} />
                     <Route path="/settings" element={<ProtectedRoute allowedRoles={['tenant_admin']}><Settings /></ProtectedRoute>} />

@@ -18,10 +18,16 @@ class PurchaseOrder extends Model
         'expected_date',
         'notes',
         'tenant_id',
+        'branch_id',
     ];
 
     public function supplier()
     {
         return $this->belongsTo(Supplier::class);
+    }
+
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
     }
 }

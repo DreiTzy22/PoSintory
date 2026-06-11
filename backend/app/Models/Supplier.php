@@ -17,5 +17,11 @@ class Supplier extends Model
         'phone',
         'address',
         'tenant_id',
+        'branch_id',
     ];
+
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
+    }
 }

@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import { toast, alertError, confirmAction } from '../lib/swal';
-import { Plus, Search, Edit2, Trash2, X, Package, AlertCircle } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, X, Package, AlertCircle, MapPin } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 export default function Products() {
     const [items, setItems] = useState([]);
+    const [branches, setBranches] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
@@ -20,24 +21,35 @@ export default function Products() {
         price: '',
         stock: '',
         description: '',
-        status: 'active'
+        status: 'active',
+        branch_id: ''
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         loadProducts();
+        loadBranches();
     }, []);
 
     const loadProducts = async () => {
         setIsLoading(true);
         setError('');
         try {
-            const res = await api.get('/products?per_page=100');
-            setItems(res.data?.data ?? []);
+            const res = await api.get('/products');
+            setItems(res.data ?? []);
         } catch (e) {
             setError('Unable to load products. Please login and try again.');
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const loadBranches = async () => {
+        try {
+            const res = await api.get('/branches');
+            setBranches(res.data ?? []);
+        } catch (e) {
+            console.error('Failed to load branches');
         }
     };
 
@@ -51,7 +63,8 @@ export default function Products() {
                 price: product.price,
                 stock: product.stock,
                 description: product.description || '',
-                status: product.status || 'active'
+                status: product.status || 'active',
+                branch_id: product.branch_id || ''
             });
         } else {
             setEditingProduct(null);
@@ -62,7 +75,8 @@ export default function Products() {
                 price: '',
                 stock: '',
                 description: '',
-                status: 'active'
+                status: 'active',
+                branch_id: ''
             });
         }
         setIsModalOpen(true);
@@ -150,6 +164,7 @@ export default function Products() {
                                 <tr>
                                     <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">Product</th>
                                     <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">SKU</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">Branch</th>
                                     <th className="px-4 py-3 text-right text-xs font-semibold text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">Price</th>
                                     <th className="px-4 py-3 text-right text-xs font-semibold text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">Stock</th>
                                     <th className="px-4 py-3 text-right text-xs font-semibold text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">Actions</th>
@@ -158,7 +173,7 @@ export default function Products() {
                             <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
                                 {isLoading ? (
                                     <tr>
-                                        <td className="px-4 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400" colSpan={5}>
+                                        <td className="px-4 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400" colSpan={6}>
                                             <div className="flex items-center justify-center gap-2">
                                                 <div className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
                                                 Loading products…
@@ -167,48 +182,61 @@ export default function Products() {
                                     </tr>
                                 ) : filteredItems.length === 0 ? (
                                     <tr>
-                                        <td className="px-4 py-12 text-center text-sm text-zinc-500 dark:text-zinc-400" colSpan={5}>
+                                        <td className="px-4 py-12 text-center text-sm text-zinc-500 dark:text-zinc-400" colSpan={6}>
                                             <Package className="w-12 h-12 mx-auto opacity-10 mb-3" />
                                             {searchQuery ? 'No products match your search.' : 'No products yet. Click “Add product” to create your first item.'}
                                         </td>
                                     </tr>
                                 ) : (
-                                    filteredItems.map((p) => (
-                                        <tr key={p.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors">
-                                            <td className="px-4 py-3">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 rounded bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-400">
-                                                        <Package className="w-4 h-4" />
+                                    filteredItems.map((p) => {
+                                        const productBranch = branches.find(b => b.id === p.branch_id);
+                                        return (
+                                            <tr key={p.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors">
+                                                <td className="px-4 py-3">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-8 h-8 rounded bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-400">
+                                                            <Package className="w-4 h-4" />
+                                                        </div>
+                                                        <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{p.name}</div>
                                                     </div>
-                                                    <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{p.name}</div>
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-3 text-sm text-zinc-500 dark:text-zinc-400 font-mono">{p.sku ?? '—'}</td>
-                                            <td className="px-4 py-3 text-sm text-right text-zinc-900 dark:text-zinc-100">₱{parseFloat(p.price).toFixed(2)}</td>
-                                            <td className="px-4 py-3 text-sm text-right">
-                                                <span className={cn(
-                                                    "inline-flex items-center px-2 py-0.5 rounded text-xs font-medium",
-                                                    p.stock <= 5 ? "bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400" : "text-zinc-900 dark:text-zinc-100"
-                                                )}>
-                                                    {p.stock ?? 0}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-3 text-right space-x-2">
-                                                <button 
-                                                    onClick={() => handleOpenModal(p)}
-                                                    className="p-1.5 rounded-md text-zinc-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors"
-                                                >
-                                                    <Edit2 className="w-4 h-4" />
-                                                </button>
-                                                <button 
-                                                    onClick={() => handleDelete(p.id)}
-                                                    className="p-1.5 rounded-md text-zinc-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))
+                                                </td>
+                                                <td className="px-4 py-3 text-sm text-zinc-500 dark:text-zinc-400 font-mono">{p.sku ?? '—'}</td>
+                                                <td className="px-4 py-3">
+                                                    {productBranch ? (
+                                                        <span className="inline-flex items-center gap-1 text-xs text-zinc-600 dark:text-zinc-400">
+                                                            <MapPin className="w-3 h-3" />
+                                                            {productBranch.name}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-xs text-zinc-500">No Branch</span>
+                                                    )}
+                                                </td>
+                                                <td className="px-4 py-3 text-sm text-right text-zinc-900 dark:text-zinc-100">₱{parseFloat(p.price).toFixed(2)}</td>
+                                                <td className="px-4 py-3 text-sm text-right">
+                                                    <span className={cn(
+                                                        "inline-flex items-center px-2 py-0.5 rounded text-xs font-medium",
+                                                        p.stock <= 5 ? "bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400" : "text-zinc-900 dark:text-zinc-100"
+                                                    )}>
+                                                        {p.stock ?? 0}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-3 text-right space-x-2">
+                                                    <button 
+                                                        onClick={() => handleOpenModal(p)}
+                                                        className="p-1.5 rounded-md text-zinc-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors"
+                                                    >
+                                                        <Edit2 className="w-4 h-4" />
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => handleDelete(p.id)}
+                                                        className="p-1.5 rounded-md text-zinc-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })
                                 )}
                             </tbody>
                         </table>
@@ -239,6 +267,19 @@ export default function Products() {
                                         className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-transparent px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none dark:text-zinc-100" 
                                         placeholder="e.g. Arabica Coffee Beans"
                                     />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase">Branch</label>
+                                    <select 
+                                        value={formData.branch_id}
+                                        onChange={e => setFormData({...formData, branch_id: e.target.value})}
+                                        className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-transparent px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none dark:text-zinc-100 dark:bg-zinc-900"
+                                    >
+                                        <option value="">No Branch</option>
+                                        {branches.map(b => (
+                                            <option key={b.id} value={b.id}>{b.name}</option>
+                                        ))}
+                                    </select>
                                 </div>
                                 <div className="space-y-1">
                                     <label className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase">SKU</label>

@@ -19,6 +19,7 @@ class Sale extends Model
         'payment_method',
         'status',
         'tenant_id',
+        'branch_id',
     ];
 
     public function items()
@@ -29,5 +30,10 @@ class Sale extends Model
     public function customer()
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
     }
 }

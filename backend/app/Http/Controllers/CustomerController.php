@@ -19,7 +19,7 @@ class CustomerController extends Controller
                   ->orWhere('email', 'like', "%{$search}%")
                   ->orWhere('phone', 'like', "%{$search}%");
         }
-        return $query->latest('id')->paginate($request->get('per_page', 25));
+        return $query->latest('id')->get();
     }
 
     public function store(Request $request)
@@ -30,6 +30,7 @@ class CustomerController extends Controller
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string',
             'credit_limit' => 'nullable|numeric|min:0',
+            'branch_id' => 'nullable|exists:branches,id',
         ]);
 
         $customer = Customer::create($validated);
@@ -49,6 +50,7 @@ class CustomerController extends Controller
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string',
             'credit_limit' => 'nullable|numeric|min:0',
+            'branch_id' => 'nullable|exists:branches,id',
         ]);
 
         $customer->update($validated);

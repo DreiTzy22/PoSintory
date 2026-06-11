@@ -21,10 +21,16 @@ class Product extends Model
         'alert_threshold',
         'image',
         'tenant_id',
+        'branch_id',
     ];
 
     public function saleItems()
     {
         return $this->hasMany(SaleItem::class);
+    }
+
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
     }
 }

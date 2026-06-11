@@ -30,6 +30,7 @@ class StoreProductRequest extends FormRequest
             'stock' => ['nullable', 'integer', 'min:0'],
             'alert_threshold' => ['nullable', 'integer', 'min:0'],
             'image' => ['nullable', 'string', 'max:2048'],
+            'branch_id' => ['nullable', 'exists:branches,id'],
         ];
     }
 }

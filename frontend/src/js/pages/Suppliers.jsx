@@ -30,8 +30,8 @@ export default function Suppliers() {
         setIsLoading(true);
         setError('');
         try {
-            const res = await api.get('/suppliers?per_page=100');
-            setItems(res.data?.data ?? []);
+            const res = await api.get('/suppliers');
+            setItems(res.data ?? []);
         } catch (e) {
             setError('Unable to load suppliers. Please login and try again.');
         } finally {

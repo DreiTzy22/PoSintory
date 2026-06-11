@@ -19,7 +19,7 @@ class PurchaseOrderController extends Controller
                 $q->where('name', 'like', "%{$search}%");
             });
         }
-        return $query->latest('id')->paginate($request->get('per_page', 25));
+        return $query->latest('id')->get();
     }
 
     public function store(Request $request)
@@ -31,6 +31,7 @@ class PurchaseOrderController extends Controller
             'expected_date' => 'nullable|date',
             'status' => 'nullable|string',
             'notes' => 'nullable|string',
+            'branch_id' => 'nullable|exists:branches,id',
         ]);
 
         $po = PurchaseOrder::create($validated);
@@ -51,6 +52,7 @@ class PurchaseOrderController extends Controller
             'expected_date' => 'nullable|date',
             'status' => 'nullable|string',
             'notes' => 'nullable|string',
+            'branch_id' => 'nullable|exists:branches,id',
         ]);
 
         $purchaseOrder->update($validated);

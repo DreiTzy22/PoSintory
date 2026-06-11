@@ -16,6 +16,7 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\TicketController;
+use App\Http\Controllers\BranchController;
 
 // Public auth routes
 Route::post('/login', [AuthController::class, 'login']);
@@ -33,6 +34,7 @@ Route::middleware(['auth:sanctum', 'tenant.status'])->group(function () {
     Route::apiResource('users', UserController::class);
     Route::apiResource('purchase-orders', PurchaseOrderController::class);
     Route::apiResource('tickets', TicketController::class);
+    Route::apiResource('branches', BranchController::class);
     
     // Super Admin Only Routes
     Route::middleware('role:super_admin')->prefix('admin')->group(function () {
@@ -63,18 +65,72 @@ Route::middleware(['auth:sanctum', 'tenant.status'])->group(function () {
             ];
         }
 
+        $branchId = $request->query('branch_id');
         $today = now()->startOfDay();
+        $sevenDaysAgo = now()->subDays(6)->startOfDay();
+
+        // Helper function to apply branch filter
+        $applyBranchFilter = function ($query) use ($branchId) {
+            if ($branchId) {
+                $query->where('branch_id', $branchId);
+            }
+            return $query;
+        };
+
+        // Generate last 7 days
+        $salesTrend = collect();
+        for ($i = 6; $i >= 0; $i--) {
+            $date = now()->subDays($i)->startOfDay();
+            $salesTrend->push([
+                'date' => $date->format('Y-m-d'),
+                'day' => $date->format('D'),
+                'sales' => 0.0,
+            ]);
+        }
+
+        // Get real sales data for last 7 days, filtered by branch if needed
+        $dbSalesQuery = \App\Models\Sale::selectRaw('DATE(created_at) as date, SUM(total_amount) as sales')
+            ->where('created_at', '>=', $sevenDaysAgo);
+        $dbSales = $applyBranchFilter($dbSalesQuery)
+            ->groupByRaw('DATE(created_at)')
+            ->orderByRaw('DATE(created_at)')
+            ->get()
+            ->map(fn ($item) => [
+                'date' => $item->date,
+                'sales' => floatval($item->sales),
+            ]);
+
+        // Merge real data into our day list
+        foreach ($dbSales as $dbSale) {
+            $existingDay = $salesTrend->firstWhere('date', $dbSale['date']);
+            if ($existingDay) {
+                $existingDay['sales'] = $dbSale['sales'];
+            }
+        }
+
+        // Extract just sales values for frontend graph
+        $salesTrendValues = $salesTrend->pluck('sales')->toArray();
+
+        // Get all branches for the tenant
+        $branches = \App\Models\Branch::all();
 
         return [
-            'today_sales' => (float) \App\Models\Sale::where('created_at', '>=', $today)->sum('total_amount'),
-            'low_stock_count' => \App\Models\Product::whereRaw('stock <= 6')->count(),
-            'total_products' => \App\Models\Product::count(),
-            'inventory_value' => (float) \App\Models\Product::selectRaw('SUM(stock * price) as total')->value('total'),
-            'top_product' => \App\Models\Product::withCount(['saleItems as total_qty' => function ($query) {
+            'today_sales' => (float) $applyBranchFilter(\App\Models\Sale::where('created_at', '>=', $today))->sum('total_amount'),
+            'low_stock_count' => $applyBranchFilter(\App\Models\Product::whereRaw('stock <= 6'))->count(),
+            'total_products' => $applyBranchFilter(\App\Models\Product::query())->count(),
+            'inventory_value' => (float) $applyBranchFilter(\App\Models\Product::selectRaw('SUM(stock * price) as total'))->value('total'),
+            'top_product' => $applyBranchFilter(\App\Models\Product::withCount(['saleItems as total_qty' => function ($query) use ($branchId) {
                     $query->select(DB::raw('sum(quantity)'));
-                }])
+                    if ($branchId) {
+                        $query->whereHas('sale', fn($q) => $q->where('branch_id', $branchId));
+                    }
+                }]))
                 ->orderBy('total_qty', 'desc')
-                ->first()?->name ?? 'None'
+                ->first()?->name ?? 'None',
+            'sales_trend' => $salesTrendValues,
+            'sales_trend_labels' => $salesTrend->pluck('day')->toArray(),
+            'branches' => $branches,
+            'selected_branch_id' => $branchId ? (int)$branchId : null,
         ];
     });
 });

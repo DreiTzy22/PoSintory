@@ -27,7 +27,7 @@ export default function SuperAdminTenants() {
         setIsLoading(true);
         try {
             const res = await api.get('/admin/tenants');
-            setItems(res.data?.data ?? []);
+            setItems(res.data ?? []);
         } catch (e) {
             console.error('Failed to load tenants');
         } finally {
@@ -144,15 +144,17 @@ export default function SuperAdminTenants() {
                                     <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">Plan</th>
                                     <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">Status</th>
                                     <th className="px-4 py-3 text-right text-xs font-semibold text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">Users</th>
+                                    <th className="px-4 py-3 text-right text-xs font-semibold text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">Products</th>
+                                    <th className="px-4 py-3 text-right text-xs font-semibold text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">Revenue</th>
                                     <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">Created</th>
                                     <th className="px-4 py-3 text-right text-xs font-semibold text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
                                 {isLoading ? (
-                                    <tr><td colSpan={5} className="px-4 py-8 text-center text-zinc-500">Loading tenants...</td></tr>
+                                    <tr><td colSpan={8} className="px-4 py-8 text-center text-zinc-500">Loading tenants...</td></tr>
                                 ) : filteredItems.length === 0 ? (
-                                    <tr><td colSpan={5} className="px-4 py-8 text-center text-zinc-500">No tenants found.</td></tr>
+                                    <tr><td colSpan={8} className="px-4 py-8 text-center text-zinc-500">No tenants found.</td></tr>
                                 ) : (
                                     filteredItems.map((tenant) => (
                                         <tr key={tenant.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/30">
@@ -182,6 +184,10 @@ export default function SuperAdminTenants() {
                                                 </span>
                                             </td>
                                             <td className="px-4 py-3 text-sm text-right text-zinc-500 dark:text-zinc-400">{tenant.users_count}</td>
+                                            <td className="px-4 py-3 text-sm text-right text-zinc-500 dark:text-zinc-400">{tenant.products_count}</td>
+                                            <td className="px-4 py-3 text-sm text-right font-semibold text-zinc-900 dark:text-zinc-100">
+                                                ₱{parseFloat(tenant.total_revenue || 0).toFixed(2)}
+                                            </td>
                                             <td className="px-4 py-3 text-xs text-zinc-500 dark:text-zinc-400">{new Date(tenant.created_at).toLocaleDateString()}</td>
                                             <td className="px-4 py-3 text-right space-x-1">
                                                 <button 

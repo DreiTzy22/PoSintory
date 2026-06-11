@@ -16,7 +16,7 @@ class SaleController extends Controller
         return Sale::query()
             ->with(['items.product', 'customer'])
             ->latest('id')
-            ->paginate(25);
+            ->get();
     }
 
     /**
