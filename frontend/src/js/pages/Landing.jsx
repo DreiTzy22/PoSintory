@@ -102,7 +102,7 @@ export default function Landing() {
                         <div className="bg-gradient-to-br from-teal-500 to-cyan-600 p-1.5 rounded-lg">
                             <Building2 className="w-5 h-5 text-white" />
                         </div>
-                        <span className="font-bold text-xl text-slate-900 dark:text-slate-50 tracking-tight">PoSintory</span>
+                        <span className="font-bold text-xl text-slate-900 dark:text-slate-50 tracking-tight">Inventra</span>
                     </div>
                     <div className="hidden md:flex items-center gap-8">
                         <a href="#features" className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors">Features</a>
@@ -126,7 +126,7 @@ export default function Landing() {
                             Sign In
                         </Link>
                         <a 
-                            href="mailto:deantavas02@gmail.com?subject=PoSintory Inquiry" 
+                            href="mailto:deantavas02@gmail.com?subject=Inventra - Inquiry" 
                             className="px-4 py-2 bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white rounded-lg text-sm font-semibold transition-all shadow-md shadow-teal-500/25"
                         >   
                             Inquire Now
